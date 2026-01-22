@@ -18,7 +18,8 @@ $title = 'Importar MPs';
         <input class="form-control" type="file" name="arquivo" required accept=".xlsx,.xls,.csv">
         <div class="invalid-feedback">Selecione um arquivo.</div>
         <div class="form-text">
-          Se o servidor não tiver PhpSpreadsheet, envie CSV (delimitador “;” ou “,”).
+          Para XLS/XLSX, o servidor precisa do Composer com o pacote <code>phpoffice/phpspreadsheet</code> (ou seja, <code>vendor/autoload.php</code> + <code>vendor/phpoffice/phpspreadsheet</code>).
+          Se não tiver, envie CSV (delimitador “;” ou “,”).
         </div>
       </div>
       <button class="btn btn-primary" type="submit">Importar</button>

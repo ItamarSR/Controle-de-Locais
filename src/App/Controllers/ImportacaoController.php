@@ -10,6 +10,25 @@ use Core\View;
 
 final class ImportacaoController extends BaseController
 {
+    private function tryLoadVendorAutoload(): bool
+    {
+        // Tenta carregar autoload do Composer (alguns deploys colocam o webroot na raiz ou em /public).
+        $root = dirname(__DIR__, 4);
+        $candidates = [
+            $root . '/vendor/autoload.php',
+            $root . '/public/vendor/autoload.php',
+        ];
+
+        foreach ($candidates as $file) {
+            if (is_string($file) && $file !== '' && file_exists($file)) {
+                require_once $file;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function form(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
@@ -67,8 +86,16 @@ final class ImportacaoController extends BaseController
             }
             fclose($h);
         } elseif (in_array($ext, ['xlsx', 'xls'], true)) {
+            $hasVendorAutoload = $this->tryLoadVendorAutoload();
             if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
-                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Importação XLS/XLSX indisponível. Execute composer install no servidor, ou envie CSV.'];
+                $msg = 'Importação XLS/XLSX indisponível: biblioteca PhpSpreadsheet não encontrada.';
+                if (!$hasVendorAutoload) {
+                    $msg .= ' Não encontrei o arquivo vendor/autoload.php no servidor.';
+                } else {
+                    $msg .= ' O autoload foi encontrado, mas o pacote pode não estar instalado (verifique vendor/phpoffice/phpspreadsheet).';
+                }
+                $msg .= ' Solução: rode "composer install" no servidor (na raiz do projeto) ou envie CSV.';
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => $msg];
                 Http::redirect('/admin/importacao');
             }
 
