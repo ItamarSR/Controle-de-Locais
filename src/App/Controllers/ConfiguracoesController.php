@@ -20,6 +20,8 @@ final class ConfiguracoesController extends BaseController
             'title' => 'Configurações',
             'nivel' => $nivel,
             'settings' => $s->all(),
+            'settings_ok' => $s->tableAvailable(),
+            'settings_error' => $s->lastError(),
         ]);
     }
 
@@ -29,11 +31,22 @@ final class ConfiguracoesController extends BaseController
         $nivel = (string)($_SESSION['nivel'] ?? '');
         $s = new Settings();
 
+        if (!$s->tableAvailable()) {
+            $_SESSION['flash'] = [
+                'type' => 'danger',
+                'message' => 'Tabela de configurações não encontrada no banco. Atualize o banco usando o sql/schema.sql.',
+            ];
+            Http::redirect('/admin/configuracoes');
+        }
+
         // Impressão (EditorPro/Admin)
         $printPt = (int)($_POST['print_text_pt'] ?? 22);
         if ($printPt < 10) $printPt = 10;
         if ($printPt > 40) $printPt = 40;
-        $s->set('print_text_pt', (string)$printPt);
+        if (!$s->set('print_text_pt', (string)$printPt)) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar as configurações de impressão.'];
+            Http::redirect('/admin/configuracoes');
+        }
 
         // Tema (somente Admin)
         if ($nivel === 'admin') {
@@ -49,9 +62,10 @@ final class ConfiguracoesController extends BaseController
                 }
             }
 
-            $s->set('theme_page', $page);
-            $s->set('theme_header', $header);
-            $s->set('theme_footer', $footer);
+            if (!$s->set('theme_page', $page) || !$s->set('theme_header', $header) || !$s->set('theme_footer', $footer)) {
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar as cores do tema.'];
+                Http::redirect('/admin/configuracoes');
+            }
         }
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Configurações salvas.'];

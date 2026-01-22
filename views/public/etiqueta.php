@@ -12,9 +12,10 @@ try {
 if ($pt < 10) $pt = 10;
 if ($pt > 40) $pt = 40;
 
-$ptNome = $pt;
-$ptMp = max(10, $pt - 6);
-$ptSmall = max(8, $pt - 12);
+// Requisito: LOCAL (nome_local) deve sair grande; demais seguem o tamanho configurado.
+$ptNome = max(28, min(44, $pt + 10));
+$ptMp = $pt;
+$ptSmall = max(8, $pt - 10);
 ?>
 <!doctype html>
 <html lang="pt-BR">

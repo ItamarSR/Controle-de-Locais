@@ -2,6 +2,8 @@
 $title = 'Configurações';
 $nivel = $nivel ?? (string)($_SESSION['nivel'] ?? '');
 $settings = $settings ?? [];
+$settings_ok = $settings_ok ?? true;
+$settings_error = $settings_error ?? null;
 
 $printPt = (int)($settings['print_text_pt'] ?? 22);
 $themePage = (string)($settings['theme_page'] ?? '#f6f7fb');
@@ -16,6 +18,16 @@ $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
   </div>
   <a class="btn btn-outline-secondary" href="<?= htmlspecialchars(\Core\Http::url('/admin/dashboard')) ?>">Voltar</a>
 </div>
+
+<?php if (!$settings_ok): ?>
+  <div class="alert alert-warning">
+    <div class="fw-bold">Configurações ainda não estão ativas no banco.</div>
+    <div class="small">Atualize o banco executando o arquivo <code>sql/schema.sql</code> (ele cria a tabela <code>configuracoes</code>).</div>
+    <?php if (is_string($settings_error) && $settings_error !== ''): ?>
+      <div class="small text-secondary mt-2">Detalhe: <code><?= htmlspecialchars($settings_error) ?></code></div>
+    <?php endif; ?>
+  </div>
+<?php endif; ?>
 
 <form method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/configuracoes')) ?>" class="needs-validation" novalidate>
   <div class="card shadow-sm mb-3">
