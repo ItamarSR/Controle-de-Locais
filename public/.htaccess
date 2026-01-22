@@ -1,4 +1,7 @@
 <IfModule mod_rewrite.c>
+  Options -MultiViews
+  DirectoryIndex index.php
+
   RewriteEngine On
 
   # Se existir arquivo ou diretório físico, serve direto
@@ -8,5 +11,11 @@
 
   # Caso contrário, encaminha tudo para o front controller
   RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+  # Fallback para ambientes sem mod_rewrite: usa o handler 404 para enviar para o front controller.
+  # (Pode exigir AllowOverride FileInfo no Apache)
+  ErrorDocument 404 /index.php
 </IfModule>
 

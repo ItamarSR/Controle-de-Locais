@@ -11,7 +11,17 @@ if ($basePath !== '' && strpos($requestPath, $basePath) === 0) {
 }
 $path = trim($requestPath, '/');
 
-$segments = explode('/', $path);
+$path = (string)$path;
+// Normalizações comuns:
+// - quando o usuário acessa /index.php (ou /index.php/), tratar como raiz
+// - quando o servidor expõe rota como /index.php/admin/...
+if ($path === 'index.php' || $path === 'index.php/') {
+    $path = '';
+} elseif (strpos($path, 'index.php/') === 0) {
+    $path = substr($path, strlen('index.php/'));
+}
+
+$segments = explode('/', $path ?: '');
 
 switch ($segments[0]) {
     case '':
