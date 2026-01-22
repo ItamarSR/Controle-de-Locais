@@ -1,7 +1,9 @@
 <?php
 // src/controllers/AuthController.php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../models/Usuario.php';
 
 class AuthController {
@@ -61,7 +63,9 @@ class AuthController {
     }
 
     public function logout() {
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         header('Location: /login');
         exit;
     }

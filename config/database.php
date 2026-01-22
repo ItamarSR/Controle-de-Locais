@@ -26,8 +26,11 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (PDOException $e) {
-    // Em ambiente de produção registre o erro e retorne uma mensagem genérica.
-    throw new RuntimeException('Erro na conexão com o banco de dados: ' . $e->getMessage());
+    // Não derrube o sistema no require/boot (permite renderizar uma página de erro amigável).
+    // Detalhes devem ser registrados em produção; aqui mantemos detalhe disponível para CLI/debug.
+    $pdo = null;
+    $__db_error = 'Não foi possível conectar ao banco de dados. Verifique DB_HOST/DB_NAME/DB_USER/DB_PASS e se o MySQL está acessível.';
+    $__db_error_detail = $e->getMessage();
 }
 
 /**
@@ -36,5 +39,19 @@ try {
 function getConnection(): PDO
 {
     global $pdo;
+    global $__db_error;
+
+    if (!$pdo instanceof PDO) {
+        throw new RuntimeException($__db_error ?: 'Banco de dados indisponível.');
+    }
     return $pdo;
+}
+
+/**
+ * Detalhe do erro de conexão (uso em CLI/debug).
+ */
+function getDbConnectionErrorDetail(): ?string
+{
+    global $__db_error_detail;
+    return isset($__db_error_detail) ? (string)$__db_error_detail : null;
 }
