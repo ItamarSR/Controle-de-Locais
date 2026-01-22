@@ -2,6 +2,20 @@
 
 declare(strict_types=1);
 
+// Guardrails para evitar HTTP 500 "mudo" em hospedagem
+if (PHP_VERSION_ID < 80100) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<h1>Erro</h1><p>Este sistema requer PHP 8.1+. Versão atual: " . htmlspecialchars(PHP_VERSION) . "</p>";
+    exit;
+}
+if (!extension_loaded('pdo_mysql')) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<h1>Erro</h1><p>A extensão <code>pdo_mysql</code> não está habilitada no servidor.</p>";
+    exit;
+}
+
 session_start();
 
 $vendor = __DIR__ . '/../vendor/autoload.php';
