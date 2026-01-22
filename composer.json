@@ -7,6 +7,12 @@
     "php": ">=8.1",
     "phpoffice/phpspreadsheet": "^2.3"
   },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/App/",
+      "Core\\": "src/Core/"
+    }
+  },
   "config": {
     "sort-packages": true,
     "preferred-install": "dist"

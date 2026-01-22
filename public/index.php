@@ -1,102 +1,24 @@
 <?php
-// public/index.php (ponto de entrada único)
 
-require_once __DIR__ . '/../src/bootstrap.php';
+declare(strict_types=1);
 
-// Detectar e remover um possível base path (suporte a execução em subdiretório)
-$basePath = BASE_PATH;
-$requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-if ($basePath !== '' && strpos($requestPath, $basePath) === 0) {
-    $requestPath = substr($requestPath, strlen($basePath));
-}
-$path = trim($requestPath, '/');
+session_start();
 
-$path = (string)$path;
-// Normalizações comuns:
-// - quando o usuário acessa /index.php (ou /index.php/), tratar como raiz
-// - quando o servidor expõe rota como /index.php/admin/...
-if ($path === 'index.php' || $path === 'index.php/') {
-    $path = '';
-} elseif (strpos($path, 'index.php/') === 0) {
-    $path = substr($path, strlen('index.php/'));
-}
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$segments = explode('/', $path ?: '');
+use Core\Http;
+use Core\Router;
 
-switch ($segments[0]) {
-    case '':
-        require __DIR__ . '/../src/views/public/index.php'; // Dashboard público
-        break;
+set_exception_handler(function (Throwable $e): void {
+    http_response_code(500);
+    echo \Core\View::render('errors/500', ['title' => 'Erro', 'message' => $e->getMessage()]);
+});
 
-    case 'login':
-        (new \AuthController())->login();
-        break;
+$router = new Router();
 
-    case 'reset-senha':
-        (new \AuthController())->resetSenha();
-        break;
+// Rotas (serão implementadas nos próximos commits)
+$router->get('/', function () {
+    echo \Core\View::render('public/home', ['title' => 'Locais']);
+});
 
-    case 'logout':
-        (new \AuthController())->logout();
-        break;
-
-    case 'admin':
-        if (isset($segments[1])) {
-            switch ($segments[1]) {
-                case 'dashboard':
-                    require __DIR__ . '/../src/views/admin/dashboard.php';
-                    break;
-
-                case 'locais':
-                    $controller = new \LocalController();
-                    if (isset($segments[2])) {
-                        if ($segments[2] === 'criar') {
-                            $controller->criar();
-                        } elseif ($segments[2] === 'editar' && isset($segments[3])) {
-                            $controller->editar((int)$segments[3]);
-                        } elseif ($segments[2] === 'excluir' && isset($segments[3])) {
-                            $controller->excluir((int)$segments[3]);
-                        } else {
-                            http_response_code(404);
-                            echo "Página não encontrada";
-                        }
-                    } else {
-                        $controller->index();
-                    }
-                    break;
-
-                case 'usuarios':
-                    $controller = new \UsuarioController();
-                    if (isset($segments[2])) {
-                        if ($segments[2] === 'criar') {
-                            $controller->criar();
-                        } elseif ($segments[2] === 'editar' && isset($segments[3])) {
-                            $controller->editar((int)$segments[3]);
-                        } elseif ($segments[2] === 'excluir' && isset($segments[3])) {
-                            $controller->excluir((int)$segments[3]);
-                        } else {
-                            http_response_code(404);
-                            echo "Página não encontrada";
-                        }
-                    } else {
-                        $controller->index();
-                    }
-                    break;
-
-                case 'import-excel':
-                    (new \ImportController())->index();
-                    break;
-
-                default:
-                    http_response_code(404);
-                    echo "Página não encontrada";
-            }
-        } else {
-            redirect('/admin/dashboard');
-        }
-        break;
-
-    default:
-        http_response_code(404);
-        echo "Página não encontrada";
-}
+$router->dispatch(Http::method(), Http::path());
