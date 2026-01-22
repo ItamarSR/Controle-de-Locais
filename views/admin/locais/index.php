@@ -20,19 +20,22 @@ $locais = $locais ?? [];
         <table class="table mb-0 align-middle">
           <thead class="table-light">
             <tr>
+              <th>Código</th>
               <th>Local</th>
-              <th>MP</th>
+              <th>Descrição</th>
+              <th>Data</th>
+              <th>Responsável</th>
               <th class="text-end">Ações</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($locais as $l): ?>
               <tr>
+                <td><span class="badge text-bg-light border"><?= htmlspecialchars($l['codigo_mp']) ?></span></td>
                 <td class="fw-semibold"><?= htmlspecialchars($l['nome_local']) ?></td>
-                <td>
-                  <span class="badge text-bg-light border"><?= htmlspecialchars($l['codigo_mp']) ?></span>
-                  <div class="text-secondary small"><?= htmlspecialchars($l['nome_mp']) ?></div>
-                </td>
+                <td class="text-secondary"><?= htmlspecialchars($l['nome_mp']) ?></td>
+                <td class="text-secondary small"><?= htmlspecialchars(isset($l['data_cadastro']) ? date('d/m/Y H:i', strtotime((string)$l['data_cadastro'])) : '') ?></td>
+                <td class="text-secondary small"><?= htmlspecialchars((string)($l['responsavel_nome'] ?? '')) ?></td>
                 <td class="text-end">
                   <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars(\Core\Http::url('/admin/locais/' . $l['id'] . '/editar')) ?>">Editar</a>
                   <form class="d-inline" method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/locais/' . $l['id'] . '/excluir')) ?>" onsubmit="return confirm('Excluir este local?');">

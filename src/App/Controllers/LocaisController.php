@@ -6,11 +6,37 @@ namespace App\Controllers;
 
 use App\Models\Local;
 use App\Models\MateriaPrima;
+use App\Models\User;
 use Core\Http;
 use Core\View;
 
 final class LocaisController extends BaseController
 {
+    public function apiByCodigo(string $codigo): void
+    {
+        $this->requireRole(['editor', 'editorpro', 'admin']);
+        header('Content-Type: application/json; charset=utf-8');
+
+        $codigo = trim($codigo);
+        if ($codigo === '') {
+            echo json_encode(['ok' => false, 'error' => 'codigo_vazio'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $mp = (new MateriaPrima())->findByCodigo($codigo);
+        if (!$mp) {
+            echo json_encode(['ok' => true, 'mp' => null, 'locais' => []], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $locais = (new Local())->listByMpId((int)$mp['id']);
+        echo json_encode([
+            'ok' => true,
+            'mp' => ['id' => (int)$mp['id'], 'codigo_mp' => (string)$mp['codigo_mp'], 'nome_mp' => (string)$mp['nome_mp']],
+            'locais' => array_map(fn($l) => ['id' => (int)$l['id'], 'nome_local' => (string)$l['nome_local']], $locais),
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
     public function index(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
@@ -21,18 +47,51 @@ final class LocaisController extends BaseController
     public function createForm(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $mps = (new MateriaPrima())->listAll();
-        echo View::render('admin/locais/form', ['title' => 'Novo local', 'mps' => $mps]);
+        $u = (new User())->findById((int)($_SESSION['user_id'] ?? 0));
+        echo View::render('admin/locais/form', [
+            'title' => 'Novo local',
+            'responsavel' => $u,
+            'data_auto' => date('d/m/Y H:i'),
+        ]);
     }
 
     public function create(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $nome = trim((string)($_POST['nome_local'] ?? ''));
-        $mpId = (int)($_POST['mp_id'] ?? 0);
+        $codigo = trim((string)($_POST['codigo_mp'] ?? ''));
+        $nomeLocal = trim((string)($_POST['nome_local'] ?? ''));
+        $force = (int)($_POST['force'] ?? 0) === 1;
 
-        if (!(new Local())->create($nome, $mpId)) {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar o local. Verifique os campos.'];
+        if ($codigo === '' || $nomeLocal === '') {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Preencha Código e Local.'];
+            Http::redirect('/admin/locais/novo');
+        }
+
+        $mp = (new MateriaPrima())->findByCodigo($codigo);
+        if (!$mp) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Código não encontrado na base de MPs. Faça a importação de MPs (CSV) e tente novamente.'];
+            Http::redirect('/admin/locais/novo');
+        }
+
+        $localModel = new Local();
+        $existentes = $localModel->listByMpId((int)$mp['id']);
+        if (!$force && !empty($existentes)) {
+            // Mostra aviso e permite confirmar
+            $u = (new User())->findById((int)($_SESSION['user_id'] ?? 0));
+            echo View::render('admin/locais/form', [
+                'title' => 'Novo local',
+                'codigo_mp' => $codigo,
+                'descricao_mp' => (string)$mp['nome_mp'],
+                'nome_local' => $nomeLocal,
+                'dup_locais' => $existentes,
+                'responsavel' => $u,
+                'data_auto' => date('d/m/Y H:i'),
+            ]);
+            return;
+        }
+
+        if (!$localModel->create($nomeLocal, (int)$mp['id'], (int)($_SESSION['user_id'] ?? 0))) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar o local.'];
             Http::redirect('/admin/locais/novo');
         }
 
@@ -43,23 +102,38 @@ final class LocaisController extends BaseController
     public function editForm(string $id): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $local = (new Local())->find((int)$id);
+        $local = (new Local())->findForForm((int)$id);
         if (!$local) {
             http_response_code(404);
             echo View::render('errors/404', ['path' => '/admin/locais/' . $id . '/editar']);
             return;
         }
-        $mps = (new MateriaPrima())->listAll();
-        echo View::render('admin/locais/form', ['title' => 'Editar local', 'local' => $local, 'mps' => $mps]);
+        $u = (new User())->findById((int)($_SESSION['user_id'] ?? 0));
+        echo View::render('admin/locais/form', [
+            'title' => 'Editar local',
+            'local' => $local,
+            'codigo_mp' => (string)$local['codigo_mp'],
+            'descricao_mp' => (string)$local['nome_mp'],
+            'nome_local' => (string)$local['nome_local'],
+            'responsavel' => $u,
+            'data_auto' => date('d/m/Y H:i'),
+        ]);
     }
 
     public function edit(string $id): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $nome = trim((string)($_POST['nome_local'] ?? ''));
-        $mpId = (int)($_POST['mp_id'] ?? 0);
+        $codigo = trim((string)($_POST['codigo_mp'] ?? ''));
+        $nomeLocal = trim((string)($_POST['nome_local'] ?? ''));
+        $mp = (new MateriaPrima())->findByCodigo($codigo);
+        $mpId = (int)($mp['id'] ?? 0);
 
-        if (!(new Local())->update((int)$id, $nome, $mpId)) {
+        if ($codigo === '' || $nomeLocal === '' || $mpId <= 0) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Preencha Código e Local.'];
+            Http::redirect('/admin/locais/' . $id . '/editar');
+        }
+
+        if (!(new Local())->update((int)$id, $nomeLocal, $mpId)) {
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível atualizar o local.'];
             Http::redirect('/admin/locais/' . $id . '/editar');
         }

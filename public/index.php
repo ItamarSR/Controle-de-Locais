@@ -47,6 +47,7 @@ $router->get('/admin/dashboard', [\App\Controllers\AdminController::class, 'dash
 
 // Admin - Locais
 $router->get('/admin/locais', [\App\Controllers\LocaisController::class, 'index']);
+$router->get('/admin/locais/api/codigo/{codigo}', [\App\Controllers\LocaisController::class, 'apiByCodigo']);
 $router->get('/admin/locais/novo', [\App\Controllers\LocaisController::class, 'createForm']);
 $router->post('/admin/locais/novo', [\App\Controllers\LocaisController::class, 'create']);
 $router->get('/admin/locais/{id}/editar', [\App\Controllers\LocaisController::class, 'editForm']);

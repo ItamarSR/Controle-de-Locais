@@ -29,8 +29,11 @@ CREATE TABLE IF NOT EXISTS `locais` (
   `nome_local` VARCHAR(255) NOT NULL,
   `mp_id` INT NOT NULL,
   `data_cadastro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `responsavel_usuario_id` INT NULL,
   FOREIGN KEY (`mp_id`) REFERENCES `materias_primas`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX `idx_locais_responsavel` ON `locais` (`responsavel_usuario_id`);
 
 -- logs (opcional)
 CREATE TABLE IF NOT EXISTS `logs` (
