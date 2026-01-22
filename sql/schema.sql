@@ -33,7 +33,32 @@ CREATE TABLE IF NOT EXISTS `locais` (
   FOREIGN KEY (`mp_id`) REFERENCES `materias_primas`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX `idx_locais_responsavel` ON `locais` (`responsavel_usuario_id`);
+-- Migração para bases já existentes (MySQL 5.7+): cria coluna/índice somente se não existirem
+SET @__db_name := DATABASE();
+
+SET @__add_resp_col := (
+  SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = @__db_name AND TABLE_NAME = 'locais' AND COLUMN_NAME = 'responsavel_usuario_id') = 0,
+    'ALTER TABLE `locais` ADD COLUMN `responsavel_usuario_id` INT NULL',
+    'SELECT 1'
+  )
+);
+PREPARE stmt FROM @__add_resp_col;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @__add_resp_idx := (
+  SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE TABLE_SCHEMA = @__db_name AND TABLE_NAME = 'locais' AND INDEX_NAME = 'idx_locais_responsavel') = 0,
+    'CREATE INDEX `idx_locais_responsavel` ON `locais` (`responsavel_usuario_id`)',
+    'SELECT 1'
+  )
+);
+PREPARE stmt2 FROM @__add_resp_idx;
+EXECUTE stmt2;
+DEALLOCATE PREPARE stmt2;
 
 -- logs (opcional)
 CREATE TABLE IF NOT EXISTS `logs` (
