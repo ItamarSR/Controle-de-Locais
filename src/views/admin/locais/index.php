@@ -3,7 +3,7 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Locais Cadastrados</h1>
-        <a href="/admin/locais/criar" class="btn btn-success">+ Novo Local</a>
+        <a href="<?= htmlspecialchars(url('/admin/locais/criar')) ?>" class="btn btn-success">+ Novo Local</a>
     </div>
 
     <?php if (isset($_GET['msg']) && $_GET['msg'] === 'excluido'): ?>
@@ -47,8 +47,8 @@
                     </td>
                     <td><?= date('d/m/Y H:i', strtotime($local['data_cadastro'])) ?></td>
                     <td>
-                        <a href="/admin/locais/editar/<?= $local['id'] ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                        <form action="/admin/locais/excluir/<?= $local['id'] ?>" method="POST" class="d-inline">
+                        <a href="<?= htmlspecialchars(url('/admin/locais/editar/' . $local['id'])) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <form action="<?= htmlspecialchars(url('/admin/locais/excluir/' . $local['id'])) ?>" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-outline-danger" 
                                     onclick="return confirm('Confirma exclusão permanente?')">Excluir</button>
                         </form>

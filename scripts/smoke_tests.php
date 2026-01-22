@@ -34,12 +34,14 @@ ok('routing: subdir root maps to empty path', $path === '', "got '".$path."'");
 $path2 = resolve_path('/almoxarifado/index.php', '/almoxarifado/admin/dashboard');
 ok('routing: subdir admin/dashboard -> admin/dashboard', $path2 === 'admin/dashboard', $path2);
 
-// Test 2: entrypoints reference local autoloader
+// Test 2: entrypoints reference bootstrap/autoloader
 $rootIndex = file_get_contents(__DIR__ . '/../index.php');
 $publicIndex = file_get_contents(__DIR__ . '/../public/index.php');
 
-ok('entrypoint: root uses src/autoload.php', strpos($rootIndex, "src/autoload.php") !== false, 'expected require of src/autoload.php');
-ok('entrypoint: public uses src/autoload.php', strpos($publicIndex, "src/autoload.php") !== false, 'expected require of src/autoload.php');
+$rootHasBootstrap = strpos($rootIndex, "src/bootstrap.php") !== false;
+$publicHasBootstrap = strpos($publicIndex, "src/bootstrap.php") !== false;
+ok('entrypoint: root uses src/bootstrap.php', $rootHasBootstrap, 'expected require of src/bootstrap.php');
+ok('entrypoint: public uses src/bootstrap.php', $publicHasBootstrap, 'expected require of src/bootstrap.php');
 
 // Test 3: import view accepts CSV and documents fallback
 $importView = file_get_contents(__DIR__ . '/../src/views/admin/import-excel.php');

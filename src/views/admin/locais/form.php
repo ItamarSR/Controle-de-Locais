@@ -42,7 +42,7 @@
 
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Salvar</button>
-            <a href="/admin/locais" class="btn btn-outline-secondary">Cancelar</a>
+            <a href="<?= htmlspecialchars(url('/admin/locais')) ?>" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
 </div>

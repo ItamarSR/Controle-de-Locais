@@ -15,15 +15,13 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class ImportController {
     public function __construct() {
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login?erro=nao_autenticado');
-            exit;
+            redirect('/login?erro=nao_autenticado');
         }
 
         $usuarioModel = new Usuario();
         $usuario = $usuarioModel->buscarPorId($_SESSION['user_id']);
         if (!$usuario || !in_array($usuario['nivel_acesso'], ['editor', 'editorpro', 'admin'])) {
-            header('Location: /login?erro=acesso_negado');
-            exit;
+            redirect('/login?erro=acesso_negado');
         }
     }
 

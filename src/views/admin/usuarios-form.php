@@ -48,7 +48,7 @@
     <?php endif; ?>
 
     <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="/admin/usuarios" class="btn btn-secondary">Voltar</a>
+    <a href="<?= htmlspecialchars(url('/admin/usuarios')) ?>" class="btn btn-secondary">Voltar</a>
 </form>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

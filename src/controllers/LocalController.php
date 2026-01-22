@@ -14,15 +14,13 @@ class LocalController {
         $this->model = new Local();
 
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login?erro=nao_autenticado');
-            exit;
+            redirect('/login?erro=nao_autenticado');
         }
 
         $usuarioModel = new Usuario();
         $usuario = $usuarioModel->buscarPorId($_SESSION['user_id']);
         if (!$usuario || !in_array($usuario['nivel_acesso'], ['editor', 'editorpro', 'admin'])) {
-            header('Location: /login?erro=acesso_negado');
-            exit;
+            redirect('/login?erro=acesso_negado');
         }
     }
 
@@ -90,15 +88,13 @@ class LocalController {
 
     public function excluir(int $id) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/locais');
-            exit;
+            redirect('/admin/locais');
         }
 
         if ($this->model->excluir($id)) {
-            header('Location: /admin/locais?msg=excluido');
+            redirect('/admin/locais?msg=excluido');
         } else {
-            header('Location: /admin/locais?erro=exclusao_falhou');
+            redirect('/admin/locais?erro=exclusao_falhou');
         }
-        exit;
     }
 }

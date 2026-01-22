@@ -1,28 +1,10 @@
 <?php
 // index.php (raiz — copiado de public/index.php e adaptado para execução a partir da raiz)
 
-session_start();
-require_once __DIR__ . '/config/database.php';
-
-// Projeto convertido para rodar sem Composer em tempo de execução.
-// Usa um autoloader mínimo definido em `src/autoload.php` (carrega classes de src/controllers e src/models).
-require_once __DIR__ . '/src/autoload.php';
-
-// Evita "tela branca": renderiza um erro amigável em caso de exceção não tratada.
-set_exception_handler(function (Throwable $e): void {
-    http_response_code(500);
-    $msg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    echo "<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">";
-    echo "<title>Erro no sistema</title>";
-    echo "<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">";
-    echo "</head><body class=\"container py-5\">";
-    echo "<div class=\"alert alert-danger\"><h1 class=\"h4 mb-2\">O sistema encontrou um erro</h1><div>{$msg}</div></div>";
-    echo "<p class=\"text-muted mb-0\">Se o erro for de banco, verifique as variáveis DB_HOST/DB_NAME/DB_USER/DB_PASS e a conexão com o MySQL.</p>";
-    echo "</body></html>";
-});
+require_once __DIR__ . '/src/bootstrap.php';
 
 // Detectar e remover um possível base path (suporte a execução em subdiretório, ex: /almoxarifado)
-$basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$basePath = BASE_PATH;
 $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if ($basePath !== '' && strpos($requestPath, $basePath) === 0) {
     $requestPath = substr($requestPath, strlen($basePath));
@@ -107,8 +89,7 @@ switch ($segments[0]) {
                     echo "Página não encontrada";
             }
         } else {
-            header('Location: /admin/dashboard');
-            exit;
+            redirect('/admin/dashboard');
         }
         break;
 

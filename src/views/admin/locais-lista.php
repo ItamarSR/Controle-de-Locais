@@ -2,7 +2,7 @@
 
 <h2>Gerenciamento de Locais</h2>
 
-<a href="/admin/locais/criar" class="btn btn-primary">+ Novo Local</a>
+<a href="<?= htmlspecialchars(url('/admin/locais/criar')) ?>" class="btn btn-primary">+ Novo Local</a>
 
 <?php if (isset($_GET['msg']) && $_GET['msg'] === 'excluido'): ?>
     <div class="alert success">Local excluído com sucesso!</div>
@@ -29,8 +29,8 @@
             <td><?= htmlspecialchars($local['codigo_mp']) ?> - <?= htmlspecialchars($local['nome_mp']) ?></td>
             <td><?= date('d/m/Y H:i', strtotime($local['data_cadastro'])) ?></td>
             <td>
-                <a href="/admin/locais/editar/<?= $local['id'] ?>" class="btn btn-small">Editar</a>
-                <form action="/admin/locais/excluir/<?= $local['id'] ?>" method="POST" style="display:inline;">
+                <a href="<?= htmlspecialchars(url('/admin/locais/editar/' . $local['id'])) ?>" class="btn btn-small">Editar</a>
+                <form action="<?= htmlspecialchars(url('/admin/locais/excluir/' . $local['id'])) ?>" method="POST" style="display:inline;">
                     <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Confirma exclusão?')">Excluir</button>
                 </form>
             </td>
