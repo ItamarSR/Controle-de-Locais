@@ -1,0 +1,4 @@
+{
+  "_removed": "Este arquivo foi intencionalmente removido — o projeto foi convertido para rodar sem Composer em tempo de execução. Para restaurar dependências, recupere o composer.json original e execute 'composer install'.",
+  "private": true
+}
