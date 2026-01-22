@@ -20,8 +20,9 @@ final class Db
 
         $host = Env::getString('DB_HOST', 'localhost');
         $name = Env::getString('DB_NAME', 'sistemas_almox');
-        $user = Env::getString('DB_USER', 'root');
-        $pass = Env::getString('DB_PASS', '');
+        // Mantém compatibilidade com credenciais legadas (se não houver env vars).
+        $user = Env::getString('DB_USER', 'sistemas_master');
+        $pass = Env::getString('DB_PASS', '3yOQZ;v2j5O8.e');
         $charset = Env::getString('DB_CHARSET', 'utf8mb4');
 
         $dsn = "mysql:host={$host};dbname={$name};charset={$charset}";

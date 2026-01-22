@@ -26,9 +26,8 @@ final class AuthController extends BaseController
         }
 
         $userModel = new User();
-        $u = $userModel->findByEmail($email);
-
-        if (!$u || (int)$u['status'] !== 1 || !password_verify($senha, (string)$u['senha'])) {
+        $u = $userModel->verifyCredentials($email, $senha);
+        if (!$u) {
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Credenciais inválidas ou usuário inativo.'];
             Http::redirect('/login');
         }

@@ -32,6 +32,34 @@ final class User
         return $row ?: null;
     }
 
+    /**
+     * Verifica credenciais com tolerância a bases antigas (senha em texto).
+     * Se detectar senha em texto e autenticar, faz upgrade para password_hash().
+     */
+    public function verifyCredentials(string $email, string $senha): ?array
+    {
+        $u = $this->findByEmail($email);
+        if (!$u) return null;
+        if ((int)($u['status'] ?? 0) !== 1) return null;
+
+        $stored = (string)($u['senha'] ?? '');
+        $ok = false;
+
+        // 1) padrão moderno
+        if ($stored !== '' && password_verify($senha, $stored)) {
+            $ok = true;
+        }
+
+        // 2) fallback legado (senha em texto)
+        if (!$ok && $stored !== '' && hash_equals($stored, $senha)) {
+            $ok = true;
+            // upgrade de hash
+            $this->update((int)$u['id'], ['senha' => $senha]);
+        }
+
+        return $ok ? $u : null;
+    }
+
     public function hasAnyAdmin(): bool
     {
         $st = $this->pdo->query("SELECT 1 FROM usuarios WHERE nivel_acesso = 'admin' LIMIT 1");
