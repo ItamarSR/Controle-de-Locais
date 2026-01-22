@@ -57,6 +57,45 @@ final class Local
         return $st->fetchAll();
     }
 
+    public function consultaPublicaPorCodigo(string $codigo): array
+    {
+        $codigo = trim($codigo);
+        if ($codigo === '') return [];
+
+        try {
+            $st = $this->pdo->prepare("
+                SELECT l.id,
+                       l.nome_local,
+                       l.data_cadastro,
+                       mp.codigo_mp,
+                       mp.nome_mp,
+                       u.nome AS responsavel_nome
+                FROM locais l
+                JOIN materias_primas mp ON mp.id = l.mp_id
+                LEFT JOIN usuarios u ON u.id = l.responsavel_usuario_id
+                WHERE mp.codigo_mp = :c
+                ORDER BY l.data_cadastro DESC
+            ");
+            $st->execute([':c' => $codigo]);
+            return $st->fetchAll();
+        } catch (PDOException $e) {
+            // Compatibilidade: base antiga sem coluna responsavel_usuario_id
+            $st = $this->pdo->prepare("
+                SELECT l.id,
+                       l.nome_local,
+                       l.data_cadastro,
+                       mp.codigo_mp,
+                       mp.nome_mp
+                FROM locais l
+                JOIN materias_primas mp ON mp.id = l.mp_id
+                WHERE mp.codigo_mp = :c
+                ORDER BY l.data_cadastro DESC
+            ");
+            $st->execute([':c' => $codigo]);
+            return $st->fetchAll();
+        }
+    }
+
     public function find(int $id): ?array
     {
         $st = $this->pdo->prepare("SELECT * FROM locais WHERE id = :id LIMIT 1");

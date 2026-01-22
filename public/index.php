@@ -35,6 +35,7 @@ $router = new Router();
 // Rotas (serão implementadas nos próximos commits)
 $router->get('/', [\App\Controllers\PublicController::class, 'index']);
 $router->get('/etiqueta/{id}', [\App\Controllers\PublicController::class, 'etiqueta']);
+$router->get('/api/consulta/{codigo}', [\App\Controllers\PublicController::class, 'apiConsulta']);
 
 $router->get('/login', [\App\Controllers\AuthController::class, 'showLogin']);
 $router->post('/login', [\App\Controllers\AuthController::class, 'login']);
