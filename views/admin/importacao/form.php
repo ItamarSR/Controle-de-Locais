@@ -14,12 +14,11 @@ $title = 'Importar MPs';
   <div class="card-body p-4">
     <form method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/importacao')) ?>" enctype="multipart/form-data" class="needs-validation" novalidate>
       <div class="mb-3">
-        <label class="form-label">Arquivo (.xlsx, .xls ou .csv)</label>
-        <input class="form-control" type="file" name="arquivo" required accept=".xlsx,.xls,.csv">
+        <label class="form-label">Arquivo (.csv)</label>
+        <input class="form-control" type="file" name="arquivo" required accept=".csv">
         <div class="invalid-feedback">Selecione um arquivo.</div>
         <div class="form-text">
-          Para XLS/XLSX, o servidor precisa do Composer com o pacote <code>phpoffice/phpspreadsheet</code> (ou seja, <code>vendor/autoload.php</code> + <code>vendor/phpoffice/phpspreadsheet</code>).
-          Se não tiver, envie CSV (delimitador “;” ou “,”).
+          Importa colunas A (código) e B (nome) a partir da linha 7. Delimitador aceito: “;” ou “,”.
         </div>
       </div>
       <button class="btn btn-primary" type="submit">Importar</button>

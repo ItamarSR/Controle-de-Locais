@@ -1,5 +1,51 @@
 html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-.card { border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 16px; }
-.btn { border-radius: 12px; }
+
+:root{
+  --app-radius: 16px;
+  --app-border: rgba(15, 23, 42, 0.10);
+  --app-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+}
+
+body{
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.18), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(168,85,247,.12), transparent 55%),
+    #f6f7fb;
+}
+
+.navbar{
+  backdrop-filter: blur(8px);
+}
+
+.card{
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.btn{
+  border-radius: 14px;
+}
+
+.btn-primary{
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  border: none;
+}
+.btn-primary:hover{
+  filter: brightness(1.02);
+}
+
 .navbar-brand { letter-spacing: -0.02em; }
+
+.table > :not(caption) > * > *{
+  padding: .9rem .9rem;
+}
+
+a.card{
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+a.card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(2,6,23,.12);
+}
 

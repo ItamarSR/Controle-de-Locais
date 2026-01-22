@@ -18,12 +18,9 @@ if (!extension_loaded('pdo_mysql')) {
 
 session_start();
 
-$vendor = __DIR__ . '/../vendor/autoload.php';
-if (file_exists($vendor)) {
-    require_once $vendor;
-} else {
-    require_once __DIR__ . '/../src/autoload_fallback.php';
-}
+// Isola o Composer: o runtime do sistema NÃO depende de vendor/autoload.php.
+// Isso evita 500 em hospedagens onde o vendor foi enviado incompleto ou com permissões erradas.
+require_once __DIR__ . '/../src/autoload_fallback.php';
 
 use Core\Http;
 use Core\Router;

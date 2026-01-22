@@ -26,7 +26,7 @@ $nivel = (string)($_SESSION['nivel'] ?? '');
     <a class="card shadow-sm text-decoration-none" href="<?= htmlspecialchars(\Core\Http::url('/admin/importacao')) ?>">
       <div class="card-body p-4">
         <div class="fw-semibold">Importar MPs</div>
-        <div class="text-secondary small">Importar via Excel (colunas A/B, a partir da linha 7)</div>
+        <div class="text-secondary small">Importar via CSV (colunas A/B, a partir da linha 7)</div>
       </div>
     </a>
   </div>
