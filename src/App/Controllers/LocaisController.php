@@ -58,8 +58,8 @@ final class LocaisController extends BaseController
     public function create(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $codigo = trim((string)($_POST['codigo_mp'] ?? ''));
-        $nomeLocal = trim((string)($_POST['nome_local'] ?? ''));
+        $codigo = strtoupper(trim((string)($_POST['codigo_mp'] ?? '')));
+        $nomeLocal = strtoupper(trim((string)($_POST['nome_local'] ?? '')));
         $force = (int)($_POST['force'] ?? 0) === 1;
 
         if ($codigo === '' || $nomeLocal === '') {
@@ -123,8 +123,8 @@ final class LocaisController extends BaseController
     public function edit(string $id): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $codigo = trim((string)($_POST['codigo_mp'] ?? ''));
-        $nomeLocal = trim((string)($_POST['nome_local'] ?? ''));
+        $codigo = strtoupper(trim((string)($_POST['codigo_mp'] ?? '')));
+        $nomeLocal = strtoupper(trim((string)($_POST['nome_local'] ?? '')));
         $mp = (new MateriaPrima())->findByCodigo($codigo);
         $mpId = (int)($mp['id'] ?? 0);
 

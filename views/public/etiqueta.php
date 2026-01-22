@@ -1,6 +1,20 @@
 <?php
 // Página de impressão (sem layout).
 // Requisito: etiqueta BOPP 100x60mm.
+use App\Models\Settings;
+
+$pt = 22;
+try {
+  $s = new Settings();
+  $pt = (int)($s->get('print_text_pt', (string)$pt) ?? $pt);
+} catch (Throwable $e) {}
+
+if ($pt < 10) $pt = 10;
+if ($pt > 40) $pt = 40;
+
+$ptNome = $pt;
+$ptMp = max(10, $pt - 6);
+$ptSmall = max(8, $pt - 12);
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -23,9 +37,9 @@
       box-sizing: border-box;
       padding: 6mm;
     }
-    .nome { font-size: 22pt; font-weight: 700; line-height: 1.05; margin-bottom: 6mm; }
-    .mp { font-size: 16pt; font-weight: 700; }
-    .mp small { display:block; font-weight: 400; font-size: 10pt; margin-top: 2mm; }
+    .nome { font-size: <?= (int)$ptNome ?>pt; font-weight: 700; line-height: 1.05; margin-bottom: 6mm; }
+    .mp { font-size: <?= (int)$ptMp ?>pt; font-weight: 700; }
+    .mp small { display:block; font-weight: 400; font-size: <?= (int)$ptSmall ?>pt; margin-top: 2mm; }
   </style>
 </head>
 <body onload="window.print()">

@@ -21,36 +21,29 @@ $title = 'Consulta pública de locais';
     <div class="card shadow-sm">
       <div class="card-body p-3 p-md-4">
         <div class="row g-3">
-          <div class="col-12 col-lg-4">
-            <label class="form-label">Código</label>
-            <input class="form-control form-control-lg" id="public-codigo" placeholder="Digite o código (ex.: 12345)" maxlength="50" autocomplete="off">
-            <div class="form-text">A consulta busca pelo <code>codigo_mp</code> na base de MPs.</div>
-          </div>
-          <div class="col-12 col-lg-8">
-            <label class="form-label">Descrição</label>
-            <input class="form-control form-control-lg" id="public-descricao" readonly>
+          <div class="col-12 col-md-4 col-lg-3">
+            <label class="form-label fw-bold">CÓDIGO</label>
+            <input class="form-control" id="public-codigo" placeholder="EX: 12345" maxlength="50" autocomplete="off" style="text-transform:uppercase;font-weight:800;">
           </div>
           <div class="col-12">
-            <div id="public-status" class="text-secondary small"></div>
+            <div id="public-status" class="text-secondary small fw-bold"></div>
           </div>
         </div>
-
-        <hr class="my-4">
 
         <div class="table-responsive">
           <table class="table align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th>Local</th>
-                <th>Descrição</th>
-                <th>Data</th>
-                <th>Responsável</th>
+                <th class="fw-bold">LOCAL</th>
+                <th class="fw-bold">DESCRIÇÃO</th>
+                <th class="fw-bold">DATA</th>
+                <th class="fw-bold">RESPONSÁVEL</th>
                 <th class="text-end">Etiqueta</th>
               </tr>
             </thead>
             <tbody id="public-result">
               <tr>
-                <td colspan="5" class="text-secondary">Digite um código para consultar.</td>
+                <td colspan="5" class="text-secondary fw-bold">DIGITE UM CÓDIGO PARA CONSULTAR.</td>
               </tr>
             </tbody>
           </table>
@@ -63,10 +56,9 @@ $title = 'Consulta pública de locais';
 <script>
   (function () {
     const input = document.getElementById('public-codigo');
-    const desc = document.getElementById('public-descricao');
     const tbody = document.getElementById('public-result');
     const status = document.getElementById('public-status');
-    if (!input || !desc || !tbody) return;
+    if (!input || !tbody) return;
 
     let t = null;
     function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -81,38 +73,36 @@ $title = 'Consulta pública de locais';
 
     async function run() {
       const codigo = (input.value || '').trim();
-      desc.value = '';
       status.textContent = '';
 
       if (!codigo) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-secondary">Digite um código para consultar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">DIGITE UM CÓDIGO PARA CONSULTAR.</td></tr>';
         return;
       }
 
       status.textContent = 'Consultando...';
-      tbody.innerHTML = '<tr><td colspan="5" class="text-secondary">Carregando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
 
       try {
         const res = await fetch('<?= htmlspecialchars(\Core\Http::url('/api/consulta/')) ?>' + encodeURIComponent(codigo), { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (!data || !data.ok) throw new Error('Falha');
 
-        desc.value = data.descricao || '';
         const itens = Array.isArray(data.itens) ? data.itens : [];
 
         if (itens.length === 0) {
           status.textContent = 'Nenhum local encontrado para este código.';
-          tbody.innerHTML = '<tr><td colspan="5" class="text-secondary">Nenhum local encontrado.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">NENHUM LOCAL ENCONTRADO.</td></tr>';
           return;
         }
 
         status.textContent = `${itens.length} local(is) encontrado(s).`;
         tbody.innerHTML = itens.map(i => `
           <tr>
-            <td class="fw-semibold">${esc(i.local)}</td>
-            <td class="text-secondary">${esc(i.descricao)}</td>
-            <td class="text-secondary small">${esc(fmtDate(i.data))}</td>
-            <td class="text-secondary small">${esc(i.responsavel || '')}</td>
+            <td class="fw-bold">${esc(i.local)}</td>
+            <td class="fw-bold">${esc(i.descricao)}</td>
+            <td class="fw-bold">${esc(fmtDate(i.data))}</td>
+            <td class="fw-bold">${esc(i.responsavel || '')}</td>
             <td class="text-end">
               <a class="btn btn-sm btn-primary" target="_blank" href="${esc(i.etiqueta_url)}">Imprimir etiqueta</a>
             </td>

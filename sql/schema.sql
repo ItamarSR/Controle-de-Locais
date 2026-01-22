@@ -45,6 +45,14 @@ CREATE TABLE IF NOT EXISTS `logs` (
   KEY (`usuario_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- configurações (tema e impressão)
+CREATE TABLE IF NOT EXISTS `configuracoes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `chave` VARCHAR(80) NOT NULL UNIQUE,
+  `valor` VARCHAR(255) NOT NULL,
+  `atualizado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /*
   Seed — ADMIN INICIAL (RECOMENDADO: usar script)
 

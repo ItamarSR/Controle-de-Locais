@@ -67,4 +67,8 @@ $router->post('/admin/usuarios/{id}/excluir', [\App\Controllers\UsuariosControll
 $router->get('/admin/importacao', [\App\Controllers\ImportacaoController::class, 'form']);
 $router->post('/admin/importacao', [\App\Controllers\ImportacaoController::class, 'import']);
 
+// Admin - Configurações (EditorPro/Admin; tema somente Admin)
+$router->get('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'form']);
+$router->post('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'save']);
+
 $router->dispatch(Http::method(), Http::path());

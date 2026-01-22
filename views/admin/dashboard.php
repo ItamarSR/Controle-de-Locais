@@ -40,6 +40,15 @@ $nivel = (string)($_SESSION['nivel'] ?? '');
       </div>
     </a>
   </div>
+
+  <div class="col-12">
+    <a class="card shadow-sm text-decoration-none" href="<?= htmlspecialchars(\Core\Http::url('/admin/configuracoes')) ?>">
+      <div class="card-body p-4">
+        <div class="fw-semibold">Configurações</div>
+        <div class="text-secondary small">Impressão (tamanho do texto) e tema (Admin)</div>
+      </div>
+    </a>
+  </div>
   <?php endif; ?>
 </div>
 
