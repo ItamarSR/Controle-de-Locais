@@ -37,8 +37,33 @@ if (PHP_SAPI !== 'cli') {
 }
 
 // BASE_PATH: permite o app rodar em subdiretório (ex.: /almoxarifado)
+// Estratégia:
+// 1) respeita override via APP_BASE_PATH ou X-Forwarded-Prefix (reverse proxies)
+// 2) tenta inferir via SCRIPT_NAME (padrão)
+// 3) heurística: se REQUEST_URI começa com o nome da pasta do projeto, usa isso (ex.: /almoxarifado)
+$basePathOverride = getenv('APP_BASE_PATH') ?: '';
+if (isset($_SERVER['HTTP_X_FORWARDED_PREFIX']) && is_string($_SERVER['HTTP_X_FORWARDED_PREFIX'])) {
+    $basePathOverride = $_SERVER['HTTP_X_FORWARDED_PREFIX'];
+}
+
+$basePathOverride = trim((string)$basePathOverride);
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-$basePath = $scriptName !== '' ? rtrim(str_replace('\\', '/', dirname($scriptName)), '/') : '';
+$basePath = $basePathOverride !== '' ? $basePathOverride : ($scriptName !== '' ? rtrim(str_replace('\\', '/', dirname($scriptName)), '/') : '');
+
+if ($basePath === '' && isset($_SERVER['REQUEST_URI'])) {
+    $reqPath = (string)(parse_url((string)$_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
+    $projectDir = basename(dirname(__DIR__)); // pasta do projeto (ex.: almoxarifado)
+    if ($projectDir !== '' && preg_match('#^/' . preg_quote($projectDir, '#') . '(/|$)#', $reqPath)) {
+        $basePath = '/' . $projectDir;
+    }
+}
+
+// Normaliza: sempre começa com '/', sem barra final (exceto raiz vazia)
+$basePath = trim($basePath);
+if ($basePath !== '' && $basePath[0] !== '/') {
+    $basePath = '/' . $basePath;
+}
+$basePath = rtrim($basePath, '/');
 if (!defined('BASE_PATH')) {
     define('BASE_PATH', $basePath);
 }
