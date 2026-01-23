@@ -16,8 +16,9 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
   <a class="btn btn-outline-secondary" href="<?= htmlspecialchars(\Core\Http::url('/conferencia')) ?>">Voltar</a>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body p-4">
+<div class="mx-auto" style="max-width: 980px;">
+<div class="card shadow-sm op-card">
+  <div class="card-body p-3 p-md-4">
     <div id="op-warning-top" class="<?= $op_exists ? '' : 'd-none' ?>">
       <?php if ($op_exists): ?>
         <div class="alert alert-danger fw-bold">
@@ -30,87 +31,88 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     <form method="post" action="<?= htmlspecialchars(\Core\Http::url('/conferencia/op')) ?>" class="needs-validation" novalidate>
       <input type="hidden" name="confirm_reacerto" id="confirm_reacerto" value="">
 
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">OP</label>
-          <input class="form-control upper fw-bold" name="op" id="op" required maxlength="50" value="<?= htmlspecialchars((string)($prefill['op'] ?? '')) ?>">
+      <div class="row g-2">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">OP</label>
+          <input class="form-control form-control-sm upper fw-bold" name="op" id="op" required maxlength="50" value="<?= htmlspecialchars((string)($prefill['op'] ?? '')) ?>">
           <div class="invalid-feedback">Informe a OP.</div>
         </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">REACERTO</label>
-          <input class="form-control fw-bold" id="reacerto" readonly value="<?= htmlspecialchars($reacerto_label) ?>">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">REACERTO</label>
+          <input class="form-control form-control-sm fw-bold" id="reacerto" readonly value="<?= htmlspecialchars($reacerto_label) ?>">
         </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">RETÉM</label>
-          <select class="form-select fw-bold" name="retem" id="retem" required>
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">RETÉM</label>
+          <select class="form-select form-select-sm fw-bold" name="retem" id="retem" required>
             <option value="" <?= !isset($prefill['retem']) ? 'selected' : '' ?>>SELECIONE...</option>
             <option value="1" <?= ((int)($prefill['retem'] ?? 0) === 1) ? 'selected' : '' ?>>SIM</option>
           </select>
           <div class="invalid-feedback">Selecione SIM.</div>
         </div>
 
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">ENTRADA</label>
-          <input class="form-control fw-bold" name="entrada" id="entrada" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['entrada'] ?? '')) ?>" placeholder="EX: 32,220">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">ENTRADA</label>
+          <input class="form-control form-control-sm fw-bold" name="entrada" id="entrada" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['entrada'] ?? '')) ?>" placeholder="EX: 32,220">
           <div class="invalid-feedback">Informe um número.</div>
         </div>
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">ÓLEO</label>
-          <input class="form-control fw-bold" name="oleo" id="oleo" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['oleo'] ?? '')) ?>" placeholder="EX: 1,000">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">ÓLEO</label>
+          <input class="form-control form-control-sm fw-bold" name="oleo" id="oleo" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['oleo'] ?? '')) ?>" placeholder="EX: 1,000">
           <div class="invalid-feedback">Informe um número.</div>
         </div>
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">SAÍDA</label>
-          <input class="form-control fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">SAÍDA</label>
+          <input class="form-control form-control-sm fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
           <div class="invalid-feedback">Informe um número.</div>
           <div class="form-text" id="saida-liquida-txt">SAÍDA LÍQUIDA = SAÍDA - TOTAL EMB</div>
         </div>
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">QTDE EMB</label>
-          <input class="form-control fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">QTDE EMB</label>
+          <input class="form-control form-control-sm fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
           <div class="invalid-feedback">Qtde Emb é obrigatória quando ENTRADA &gt; 100.</div>
           <div class="form-text">Cálculo: QTDE × 0,050kg</div>
         </div>
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">COR</label>
-          <input class="form-control upper fw-bold" name="cor" id="cor" required value="<?= htmlspecialchars((string)($prefill['cor'] ?? '')) ?>">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">COR</label>
+          <input class="form-control form-control-sm upper fw-bold" name="cor" id="cor" required value="<?= htmlspecialchars((string)($prefill['cor'] ?? '')) ?>">
           <div class="invalid-feedback">Informe a cor.</div>
         </div>
 
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">DESPERDÍCIO</label>
-          <input class="form-control fw-bold" name="desperdicio" id="desperdicio" readonly value="">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">DESPERDÍCIO</label>
+          <input class="form-control form-control-sm fw-bold" name="desperdicio" id="desperdicio" readonly value="">
           <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO).</div>
         </div>
-        <div class="col-6 col-md-4">
-          <label class="form-label fw-bold">TOTAL EMB (KG)</label>
-          <input class="form-control fw-bold" id="total_emb_kg" readonly value="">
+        <div class="col-6 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">TOTAL EMB (KG)</label>
+          <input class="form-control form-control-sm fw-bold" id="total_emb_kg" readonly value="">
         </div>
 
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">DATA</label>
-          <input class="form-control fw-bold" readonly value="<?= htmlspecialchars($data_auto) ?>">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">DATA</label>
+          <input class="form-control form-control-sm fw-bold" readonly value="<?= htmlspecialchars($data_auto) ?>">
         </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">RESPONSÁVEL</label>
-          <input class="form-control fw-bold" readonly value="<?= htmlspecialchars((string)($responsavel['nome'] ?? '')) ?>">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label fw-bold small mb-1">RESPONSÁVEL</label>
+          <input class="form-control form-control-sm fw-bold" readonly value="<?= htmlspecialchars((string)($responsavel['nome'] ?? '')) ?>">
         </div>
 
         <div class="col-12">
-          <label class="form-label fw-bold">OBS</label>
-          <textarea class="form-control upper fw-bold" name="obs" id="obs" rows="3"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
+          <label class="form-label fw-bold small mb-1">OBS</label>
+          <textarea class="form-control form-control-sm upper fw-bold" name="obs" id="obs" rows="2"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
         </div>
       </div>
 
       <div id="op-warning" class="d-none"></div>
       <div id="desp-warning" class="mt-3 d-none"></div>
 
-      <div class="d-flex flex-wrap gap-2 mt-4">
-        <button class="btn btn-primary fw-bold" type="submit" id="btn-inserir">INSERIR</button>
-        <a class="btn btn-outline-secondary fw-bold" href="<?= htmlspecialchars(\Core\Http::url('/conferencia/op/consulta')) ?>">CONSULTAR</a>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-primary btn-sm fw-bold px-4" type="submit" id="btn-inserir">INSERIR</button>
+        <a class="btn btn-outline-secondary btn-sm fw-bold px-4" href="<?= htmlspecialchars(\Core\Http::url('/conferencia/op/consulta')) ?>">CONSULTAR</a>
       </div>
     </form>
   </div>
+</div>
 </div>
 
 <script>

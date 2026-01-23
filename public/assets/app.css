@@ -126,3 +126,13 @@ a.card:hover{
   .dash-top{ grid-template-columns: 1fr 1fr; }
 }
 
+/* Dash compacto (modal) */
+.modal-dash .modal-dialog{ max-width: 980px; }
+.dash-compact .dash-top{ gap: 8px; padding: 10px; }
+.dash-compact .dash-kpi{ padding: 8px 10px; }
+.dash-compact .dash-kpi-value{ font-size: 22px; }
+.dash-compact .dash-table{ font-size: .9rem; }
+
+/* OP compacto */
+.op-card .form-text{ font-size: .78rem; }
+
