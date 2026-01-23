@@ -20,6 +20,50 @@ $title = 'Consulta pública de locais';
   <div class="col-12">
     <div class="card shadow-sm">
       <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-end">
+          <div>
+            <div class="text-secondary small fw-bold">DASH PRODUÇÃO</div>
+            <div class="h5 fw-bold mb-0">Resumo por hora (OP e KG)</div>
+          </div>
+          <div class="d-flex gap-2 align-items-end">
+            <div>
+              <label class="form-label fw-bold mb-1">DATA</label>
+              <input type="date" class="form-control fw-bold" id="dash-date" value="<?= htmlspecialchars(date('Y-m-d')) ?>">
+            </div>
+            <button class="btn btn-primary fw-bold" id="dash-refresh" type="button">ATUALIZAR</button>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-md-6">
+            <div class="card border-0" style="background: rgba(37, 99, 235, .10);">
+              <div class="card-body p-3">
+                <div class="text-secondary fw-bold">TOTAL OP</div>
+                <div class="display-6 fw-bold mb-0" id="dash-total-ops">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="card border-0" style="background: rgba(79, 70, 229, .10);">
+              <div class="card-body p-3">
+                <div class="text-secondary fw-bold">TOTAL KG (SAÍDA)</div>
+                <div class="display-6 fw-bold mb-0" id="dash-total-kg">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div id="dash-status" class="text-secondary small fw-bold"></div>
+          <div class="row g-2 mt-2" id="dash-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body p-3 p-md-4">
         <div class="row g-3">
           <div class="col-12 col-md-4 col-lg-3">
             <label class="form-label fw-bold">CÓDIGO</label>
@@ -118,6 +162,72 @@ $title = 'Consulta pública de locais';
       clearTimeout(t);
       t = setTimeout(run, 250);
     });
+  })();
+</script>
+
+<script>
+  (function () {
+    const dateEl = document.getElementById('dash-date');
+    const btn = document.getElementById('dash-refresh');
+    const grid = document.getElementById('dash-grid');
+    const st = document.getElementById('dash-status');
+    const totOps = document.getElementById('dash-total-ops');
+    const totKg = document.getElementById('dash-total-kg');
+    if (!dateEl || !btn || !grid) return;
+
+    function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function fmtKg(v){
+      const n = Number(v || 0);
+      return n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+    }
+
+    async function load() {
+      const d = (dateEl.value || '').trim();
+      st.textContent = 'Carregando dash...';
+      grid.innerHTML = '';
+      try {
+        const res = await fetch('<?= htmlspecialchars(\Core\Http::url('/api/dash-producao')) ?>' + '?date=' + encodeURIComponent(d));
+        const data = await res.json();
+        if (!data || !data.ok) throw new Error('Falha');
+
+        totOps.textContent = String(data.total_ops ?? 0);
+        totKg.textContent = fmtKg(data.total_kg ?? 0);
+        st.textContent = 'Atualizado.';
+
+        const hours = Array.isArray(data.hours) ? data.hours : [];
+        grid.innerHTML = hours.map(h => {
+          const ops = Number(h.ops || 0);
+          const kg = Number(h.kg || 0);
+          const bg = (ops > 0 || kg > 0) ? 'rgba(16,185,129,.12)' : 'rgba(148,163,184,.14)';
+          return `
+            <div class="col-6 col-md-4 col-lg-3">
+              <div class="card border-0" style="background:${bg}">
+                <div class="card-body p-3">
+                  <div class="fw-bold">${esc(h.label)}</div>
+                  <div class="d-flex justify-content-between mt-2">
+                    <div>
+                      <div class="text-secondary small fw-bold">OP</div>
+                      <div class="h5 fw-bold mb-0">${esc(ops)}</div>
+                    </div>
+                    <div class="text-end">
+                      <div class="text-secondary small fw-bold">KG</div>
+                      <div class="h5 fw-bold mb-0">${esc(fmtKg(kg))}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        st.textContent = 'Erro ao carregar o dash.';
+        grid.innerHTML = '<div class="text-danger fw-bold">Erro ao carregar dados.</div>';
+      }
+    }
+
+    btn.addEventListener('click', load);
+    dateEl.addEventListener('change', load);
+    load();
   })();
 </script>
 

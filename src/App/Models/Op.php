@@ -73,5 +73,43 @@ final class Op
         $st->execute($params);
         return $st->fetchAll();
     }
+
+    /**
+     * Retorna estatísticas por hora para uma data (YYYY-MM-DD).
+     * Saída: array[0..23] com ['hour'=>int,'ops'=>int,'kg'=>float]
+     */
+    public function statsByHour(string $date): array
+    {
+        $date = trim($date);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return array_map(fn($h) => ['hour' => $h, 'ops' => 0, 'kg' => 0.0], range(0, 23));
+        }
+
+        // SUM: tenta converter "saida" para número (aceita vírgula como decimal). Valores inválidos viram 0.
+        $sql = "
+            SELECT HOUR(criado_em) AS hr,
+                   COUNT(*) AS ops,
+                   COALESCE(SUM(CAST(NULLIF(REPLACE(saida, ',', '.'), '') AS DECIMAL(12,3))), 0) AS kg
+            FROM ops
+            WHERE DATE(criado_em) = :d
+            GROUP BY hr
+        ";
+
+        $st = $this->pdo->prepare($sql);
+        $st->execute([':d' => $date]);
+        $rows = $st->fetchAll();
+
+        $map = [];
+        foreach ($rows as $r) {
+            $h = (int)$r['hr'];
+            $map[$h] = ['hour' => $h, 'ops' => (int)$r['ops'], 'kg' => (float)$r['kg']];
+        }
+
+        $out = [];
+        for ($h = 0; $h <= 23; $h++) {
+            $out[] = $map[$h] ?? ['hour' => $h, 'ops' => 0, 'kg' => 0.0];
+        }
+        return $out;
+    }
 }
 

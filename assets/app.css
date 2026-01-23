@@ -51,3 +51,5 @@ a.card:hover{
 
 .upper { text-transform: uppercase; }
 
+#dash-grid .card { box-shadow: none; }
+

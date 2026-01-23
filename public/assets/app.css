@@ -52,3 +52,6 @@ a.card:hover{
 /* Inputs em caixa alta quando necessário */
 .upper { text-transform: uppercase; }
 
+/* Dash produção */
+#dash-grid .card { box-shadow: none; }
+
