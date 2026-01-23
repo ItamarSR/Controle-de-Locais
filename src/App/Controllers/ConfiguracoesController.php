@@ -48,6 +48,24 @@ final class ConfiguracoesController extends BaseController
             Http::redirect('/admin/configuracoes');
         }
 
+        $profile = (string)($_POST['printer_profile'] ?? 'bematech');
+        if (!in_array($profile, ['bematech', 'elgin'], true)) $profile = 'bematech';
+        $s->set('printer_profile', $profile);
+
+        $ox = (float)($_POST['print_offset_x_mm'] ?? 0);
+        $oy = (float)($_POST['print_offset_y_mm'] ?? 0);
+        if ($ox < -10) $ox = -10;
+        if ($ox > 10) $ox = 10;
+        if ($oy < -10) $oy = -10;
+        if ($oy > 10) $oy = 10;
+        $s->set('print_offset_x_mm', (string)$ox);
+        $s->set('print_offset_y_mm', (string)$oy);
+
+        $scale = (float)($_POST['print_scale'] ?? 1);
+        if ($scale < 0.80) $scale = 0.80;
+        if ($scale > 1.20) $scale = 1.20;
+        $s->set('print_scale', (string)$scale);
+
         // Tema (somente Admin)
         if ($nivel === 'admin') {
             $page = trim((string)($_POST['theme_page'] ?? '#f6f7fb'));

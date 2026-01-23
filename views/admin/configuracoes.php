@@ -6,6 +6,10 @@ $settings_ok = $settings_ok ?? true;
 $settings_error = $settings_error ?? null;
 
 $printPt = (int)($settings['print_text_pt'] ?? 22);
+$printerProfile = (string)($settings['printer_profile'] ?? 'bematech');
+$printOffsetX = (float)($settings['print_offset_x_mm'] ?? 0);
+$printOffsetY = (float)($settings['print_offset_y_mm'] ?? 0);
+$printScale = (float)($settings['print_scale'] ?? 1);
 $themePage = (string)($settings['theme_page'] ?? '#f6f7fb');
 $themeHeader = (string)($settings['theme_header'] ?? '#ffffff');
 $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
@@ -41,8 +45,39 @@ $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
         </div>
         <div class="col-12 col-md-8">
           <div class="alert alert-info mb-0">
-            Dica: comece com <b>22</b> e ajuste conforme a etiqueta BOPP 100×60.
+            Dica: comece com <b>22</b>. Para corrigir centralização (ex.: Elgin), ajuste X/Y em mm.
           </div>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold">Perfil da impressora</label>
+          <select class="form-select" name="printer_profile">
+            <option value="bematech" <?= $printerProfile === 'bematech' ? 'selected' : '' ?>>Bematech</option>
+            <option value="elgin" <?= $printerProfile === 'elgin' ? 'selected' : '' ?>>Elgin</option>
+          </select>
+          <div class="form-text">Use “Elgin” para aplicar ajustes de centralização.</div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <label class="form-label fw-bold">Deslocamento X (mm)</label>
+          <input type="number" step="0.1" class="form-control" name="print_offset_x_mm" value="<?= htmlspecialchars((string)$printOffsetX) ?>">
+          <div class="form-text">Ex.: 2.0 para direita; -2.0 para esquerda.</div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <label class="form-label fw-bold">Deslocamento Y (mm)</label>
+          <input type="number" step="0.1" class="form-control" name="print_offset_y_mm" value="<?= htmlspecialchars((string)$printOffsetY) ?>">
+          <div class="form-text">Ex.: 2.0 para baixo; -2.0 para cima.</div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold">Escala</label>
+          <input type="number" step="0.01" class="form-control" name="print_scale" value="<?= htmlspecialchars((string)$printScale) ?>">
+          <div class="form-text">Normal: 1.00. Ajuste fino: 0.95–1.05.</div>
         </div>
       </div>
     </div>
