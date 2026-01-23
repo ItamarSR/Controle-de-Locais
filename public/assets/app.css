@@ -18,7 +18,7 @@ body{
     radial-gradient(900px 500px at 90% 0%, rgba(168,85,247,.16), transparent 55%),
     radial-gradient(1000px 700px at 50% 100%, rgba(16,185,129,.10), transparent 55%),
     linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
-  color: var(--app-text);
+  color: var(--theme-text, var(--app-text));
 }
 
 .navbar{
@@ -29,7 +29,7 @@ body{
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   box-shadow: var(--app-shadow);
-  background: var(--app-surface);
+  background: var(--theme-form, var(--app-surface));
 }
 
 .btn{
@@ -90,7 +90,7 @@ a.card:hover{
 /* Dash produção */
 #dash-grid .card { box-shadow: none; }
 
-.dash-wrap { border: 1px solid var(--app-border); border-radius: 14px; background: rgba(255,255,255,.7); }
+.dash-wrap { border: 1px solid var(--app-border); border-radius: 14px; background: rgba(255,255,255,.60); padding: 10px; }
 .dash-top { display: grid; gap: 10px; grid-template-columns: 1fr 1fr 1.6fr .9fr .9fr; padding: 12px; }
 .dash-kpi { background: rgba(37,99,235,.10); border-radius: 12px; padding: 10px 12px; }
 .dash-kpi:nth-child(2){ background: rgba(16,185,129,.12); }
@@ -102,9 +102,21 @@ a.card:hover{
 .dash-meta { background: rgba(79,70,229,.10); border-radius: 12px; padding: 10px 12px; }
 .dash-meta-title { font-weight: 800; color: rgba(15,23,42,.65); letter-spacing: .02em; margin-bottom: 6px; }
 .dash-table thead th { position: sticky; top: 0; z-index: 1; }
-.dash-table tbody td { padding: .55rem .75rem; }
-.dash-row-has { background: rgba(99,102,241,.06); }
-.dash-row-ok { background: rgba(16,185,129,.10); }
+.dash-status{
+  border: 1px solid var(--app-border);
+  background: rgba(255,255,255,.72);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+/* Mais espaço visual entre linhas/colunas */
+.dash-table{ border-collapse: separate; border-spacing: 0 .55rem; }
+.dash-table thead th{ padding: .8rem .85rem; }
+.dash-table tbody td{ padding: .9rem .85rem; background: rgba(255,255,255,.78); border-top: 1px solid var(--app-border); border-bottom: 1px solid var(--app-border); }
+.dash-table tbody td:first-child{ border-left: 1px solid var(--app-border); border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+.dash-table tbody td:last-child{ border-right: 1px solid var(--app-border); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+.dash-row-has td{ background: rgba(99,102,241,.06); }
+.dash-row-ok td{ background: rgba(16,185,129,.10); }
 
 @media (max-width: 992px){
   .dash-top{ grid-template-columns: 1fr 1fr; }

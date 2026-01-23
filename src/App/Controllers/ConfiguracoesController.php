@@ -82,16 +82,24 @@ final class ConfiguracoesController extends BaseController
             $page = trim((string)($_POST['theme_page'] ?? '#f6f7fb'));
             $header = trim((string)($_POST['theme_header'] ?? '#ffffff'));
             $footer = trim((string)($_POST['theme_footer'] ?? '#ffffff'));
+            $form = trim((string)($_POST['theme_form'] ?? '#ffffff'));
+            $text = trim((string)($_POST['theme_text'] ?? '#0f172a'));
 
             // valida hex simples
-            foreach (['theme_page' => $page, 'theme_header' => $header, 'theme_footer' => $footer] as $k => $v) {
+            foreach (['theme_page' => $page, 'theme_header' => $header, 'theme_footer' => $footer, 'theme_form' => $form, 'theme_text' => $text] as $k => $v) {
                 if (!preg_match('/^#[0-9a-fA-F]{6}$/', $v)) {
                     $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Cores inválidas. Use o seletor de cor.'];
                     Http::redirect('/admin/configuracoes');
                 }
             }
 
-            if (!$s->set('theme_page', $page) || !$s->set('theme_header', $header) || !$s->set('theme_footer', $footer)) {
+            if (
+                !$s->set('theme_page', $page) ||
+                !$s->set('theme_header', $header) ||
+                !$s->set('theme_footer', $footer) ||
+                !$s->set('theme_form', $form) ||
+                !$s->set('theme_text', $text)
+            ) {
                 $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar as cores do tema.'];
                 Http::redirect('/admin/configuracoes');
             }

@@ -92,7 +92,9 @@ INSERT INTO `configuracoes` (`chave`, `valor`) VALUES
   ('dash_meta_kg_step', '500'),
   ('theme_page', '#f6f7fb'),
   ('theme_header', '#ffffff'),
-  ('theme_footer', '#ffffff')
+  ('theme_footer', '#ffffff'),
+  ('theme_form', '#ffffff'),
+  ('theme_text', '#0f172a')
 ON DUPLICATE KEY UPDATE `valor` = VALUES(`valor`);
 
 -- ordens de produção (OP)

@@ -56,7 +56,7 @@ $title = 'Consulta pública de locais';
               </div>
             </div>
 
-            <div id="dash-status" class="text-secondary small fw-bold mb-2"></div>
+            <div id="dash-status" class="dash-status text-secondary small fw-bold mb-2"></div>
 
             <div class="table-responsive">
               <table class="table table-sm align-middle mb-0 dash-table">

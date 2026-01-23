@@ -15,6 +15,8 @@ $dashMetaKgStep = (float)($settings['dash_meta_kg_step'] ?? 500);
 $themePage = (string)($settings['theme_page'] ?? '#f6f7fb');
 $themeHeader = (string)($settings['theme_header'] ?? '#ffffff');
 $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
+$themeForm = (string)($settings['theme_form'] ?? '#ffffff');
+$themeText = (string)($settings['theme_text'] ?? '#0f172a');
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -117,6 +119,16 @@ $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
         <div class="col-12 col-md-4">
           <label class="form-label fw-bold">Cor do rodapé</label>
           <input type="color" class="form-control form-control-color w-100" name="theme_footer" value="<?= htmlspecialchars($themeFooter) ?>">
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold">Cor dos formulários (cards)</label>
+          <input type="color" class="form-control form-control-color w-100" name="theme_form" value="<?= htmlspecialchars($themeForm) ?>">
+          <div class="form-text">Define a cor de fundo dos cartões e áreas de formulário.</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold">Cor da fonte</label>
+          <input type="color" class="form-control form-control-color w-100" name="theme_text" value="<?= htmlspecialchars($themeText) ?>">
+          <div class="form-text">Define a cor principal do texto do sistema.</div>
         </div>
       </div>
       <div class="form-text mt-2">As cores serão aplicadas no sistema inteiro.</div>

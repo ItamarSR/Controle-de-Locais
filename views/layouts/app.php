@@ -10,11 +10,15 @@ unset($_SESSION['flash']);
 $themePage = '#f6f7fb';
 $themeHeader = '#ffffff';
 $themeFooter = '#ffffff';
+$themeForm = '#ffffff';
+$themeText = '#0f172a';
 try {
   $s = new Settings();
   $themePage = (string)($s->get('theme_page', $themePage) ?? $themePage);
   $themeHeader = (string)($s->get('theme_header', $themeHeader) ?? $themeHeader);
   $themeFooter = (string)($s->get('theme_footer', $themeFooter) ?? $themeFooter);
+  $themeForm = (string)($s->get('theme_form', $themeForm) ?? $themeForm);
+  $themeText = (string)($s->get('theme_text', $themeText) ?? $themeText);
 } catch (Throwable $e) {
   // sem DB/config: mantém defaults
 }
@@ -31,7 +35,7 @@ try {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="<?= htmlspecialchars(Http::url('/assets/app.css')) ?>" rel="stylesheet">
 </head>
-<body class="bg-body-tertiary" style="--theme-page: <?= htmlspecialchars($themePage) ?>; --theme-header: <?= htmlspecialchars($themeHeader) ?>; --theme-footer: <?= htmlspecialchars($themeFooter) ?>;">
+<body class="bg-body-tertiary" style="--theme-page: <?= htmlspecialchars($themePage) ?>; --theme-header: <?= htmlspecialchars($themeHeader) ?>; --theme-footer: <?= htmlspecialchars($themeFooter) ?>; --theme-form: <?= htmlspecialchars($themeForm) ?>; --theme-text: <?= htmlspecialchars($themeText) ?>;">
   <nav class="navbar navbar-expand-lg border-bottom sticky-top" style="background: var(--theme-header);">
     <div class="container">
       <a class="navbar-brand fw-bold" href="<?= htmlspecialchars(Http::url('/')) ?>">Almoxarifado</a>
