@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Models\Local;
 use App\Models\Op;
+use App\Models\Settings;
 use Core\Http;
 use Core\View;
 
@@ -78,6 +79,18 @@ final class PublicController
 
         $stats = (new Op())->statsByHour($date);
 
+        // Metas (configuráveis)
+        $metaOpStep = 4;
+        $metaKgStep = 500.0;
+        try {
+            $set = new Settings();
+            $metaOpStep = (int)($set->get('dash_meta_op_step', (string)$metaOpStep) ?? $metaOpStep);
+            $metaKgStep = (float)($set->get('dash_meta_kg_step', (string)$metaKgStep) ?? $metaKgStep);
+        } catch (\Throwable $e) {
+        }
+        if ($metaOpStep < 0) $metaOpStep = 0;
+        if ($metaKgStep < 0) $metaKgStep = 0.0;
+
         $totalOps = 0;
         $totalKg = 0.0;
         foreach ($stats as $s) {
@@ -90,11 +103,14 @@ final class PublicController
             'date' => $date,
             'total_ops' => $totalOps,
             'total_kg' => round($totalKg, 3),
+            'meta_op_step' => $metaOpStep,
+            'meta_kg_step' => round($metaKgStep, 3),
             'hours' => array_map(function (array $h): array {
                 $hh = (int)$h['hour'];
                 return [
                     'hour' => $hh,
-                    'label' => str_pad((string)$hh, 2, '0', STR_PAD_LEFT) . ':00–' . str_pad((string)$hh, 2, '0', STR_PAD_LEFT) . ':59',
+                    'inicio' => str_pad((string)$hh, 2, '0', STR_PAD_LEFT) . ':00:00',
+                    'fim' => str_pad((string)(($hh + 1) % 24), 2, '0', STR_PAD_LEFT) . ':00:00',
                     'ops' => (int)$h['ops'],
                     'kg' => round((float)$h['kg'], 3),
                 ];

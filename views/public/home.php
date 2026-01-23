@@ -20,42 +20,62 @@ $title = 'Consulta pública de locais';
   <div class="col-12">
     <div class="card shadow-sm">
       <div class="card-body p-3 p-md-4">
-        <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-end">
-          <div>
-            <div class="text-secondary small fw-bold">DASH PRODUÇÃO</div>
-            <div class="h5 fw-bold mb-0">Resumo por hora (OP e KG)</div>
-          </div>
-          <div class="d-flex gap-2 align-items-end">
-            <div>
-              <label class="form-label fw-bold mb-1">DATA</label>
-              <input type="date" class="form-control fw-bold" id="dash-date" value="<?= htmlspecialchars(date('Y-m-d')) ?>">
-            </div>
-            <button class="btn btn-primary fw-bold" id="dash-refresh" type="button">ATUALIZAR</button>
-          </div>
-        </div>
+        <button class="btn btn-primary fw-bold w-100 d-flex align-items-center justify-content-between"
+                type="button" data-bs-toggle="collapse" data-bs-target="#dashCollapse" aria-expanded="false">
+          <span>DASH PRODUÇÃO</span>
+          <span class="small">ABRIR/FECHAR</span>
+        </button>
 
-        <div class="row g-3 mt-1">
-          <div class="col-12 col-md-6">
-            <div class="card border-0" style="background: rgba(37, 99, 235, .10);">
-              <div class="card-body p-3">
-                <div class="text-secondary fw-bold">TOTAL OP</div>
-                <div class="display-6 fw-bold mb-0" id="dash-total-ops">0</div>
+        <div class="collapse mt-3" id="dashCollapse">
+          <div class="dash-wrap">
+            <div class="dash-top mb-2">
+              <div class="dash-kpi">
+                <div class="dash-kpi-title">TOTAL OPS</div>
+                <div class="dash-kpi-value" id="dash-total-ops">0</div>
+              </div>
+              <div class="dash-kpi">
+                <div class="dash-kpi-title">TOTAL KG</div>
+                <div class="dash-kpi-value" id="dash-total-kg">0</div>
+              </div>
+              <div class="dash-date">
+                <div class="dash-date-title">DATA</div>
+                <div class="dash-date-controls">
+                  <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-prev" type="button">-</button>
+                  <input type="date" class="form-control fw-bold" id="dash-date" value="<?= htmlspecialchars(date('Y-m-d')) ?>">
+                  <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-next" type="button">+</button>
+                  <button class="btn btn-primary btn-sm fw-bold" id="dash-refresh" type="button">OK</button>
+                </div>
+              </div>
+              <div class="dash-meta">
+                <div class="dash-meta-title">META OP</div>
+                <input class="form-control fw-bold" id="dash-meta-op" type="number" min="0" value="4">
+              </div>
+              <div class="dash-meta">
+                <div class="dash-meta-title">META KG</div>
+                <input class="form-control fw-bold" id="dash-meta-kg" type="number" min="0" step="0.1" value="500">
               </div>
             </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="card border-0" style="background: rgba(79, 70, 229, .10);">
-              <div class="card-body p-3">
-                <div class="text-secondary fw-bold">TOTAL KG (SAÍDA)</div>
-                <div class="display-6 fw-bold mb-0" id="dash-total-kg">0</div>
-              </div>
+
+            <div id="dash-status" class="text-secondary small fw-bold mb-2"></div>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0 dash-table">
+                <thead class="table-light">
+                  <tr>
+                    <th class="fw-bold">INÍCIO</th>
+                    <th class="fw-bold">FIM</th>
+                    <th class="fw-bold text-center">OPS</th>
+                    <th class="fw-bold text-center">META OP</th>
+                    <th class="fw-bold text-center">KG</th>
+                    <th class="fw-bold text-center">META KG</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-rows">
+                  <tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-
-        <div class="mt-4">
-          <div id="dash-status" class="text-secondary small fw-bold"></div>
-          <div class="row g-2 mt-2" id="dash-grid"></div>
         </div>
       </div>
     </div>
@@ -169,11 +189,15 @@ $title = 'Consulta pública de locais';
   (function () {
     const dateEl = document.getElementById('dash-date');
     const btn = document.getElementById('dash-refresh');
-    const grid = document.getElementById('dash-grid');
+    const rowsEl = document.getElementById('dash-rows');
     const st = document.getElementById('dash-status');
     const totOps = document.getElementById('dash-total-ops');
     const totKg = document.getElementById('dash-total-kg');
-    if (!dateEl || !btn || !grid) return;
+    const metaOpEl = document.getElementById('dash-meta-op');
+    const metaKgEl = document.getElementById('dash-meta-kg');
+    const prev = document.getElementById('dash-prev');
+    const next = document.getElementById('dash-next');
+    if (!dateEl || !btn || !rowsEl || !metaOpEl || !metaKgEl) return;
 
     function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
     function fmtKg(v){
@@ -181,10 +205,18 @@ $title = 'Consulta pública de locais';
       return n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
     }
 
+    function addDays(iso, delta){
+      const d = new Date(iso + 'T00:00:00');
+      if (isNaN(d.getTime())) return iso;
+      d.setDate(d.getDate() + delta);
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
     async function load() {
       const d = (dateEl.value || '').trim();
       st.textContent = 'Carregando dash...';
-      grid.innerHTML = '';
+      rowsEl.innerHTML = '<tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
       try {
         const res = await fetch('<?= htmlspecialchars(\Core\Http::url('/api/dash-producao')) ?>' + '?date=' + encodeURIComponent(d));
         const data = await res.json();
@@ -194,40 +226,60 @@ $title = 'Consulta pública de locais';
         totKg.textContent = fmtKg(data.total_kg ?? 0);
         st.textContent = 'Atualizado.';
 
+        // Defaults metas vindos do servidor (configurações)
+        if (metaOpEl.value === '' || metaOpEl.dataset.inited !== '1') {
+          metaOpEl.value = String(data.meta_op_step ?? 4);
+          metaOpEl.dataset.inited = '1';
+        }
+        if (metaKgEl.value === '' || metaKgEl.dataset.inited !== '1') {
+          metaKgEl.value = String(data.meta_kg_step ?? 500);
+          metaKgEl.dataset.inited = '1';
+        }
+
+        const metaOpStep = Number(metaOpEl.value || 0);
+        const metaKgStep = Number(metaKgEl.value || 0);
+
         const hours = Array.isArray(data.hours) ? data.hours : [];
-        grid.innerHTML = hours.map(h => {
+        rowsEl.innerHTML = hours.map(h => {
+          const hour = Number(h.hour || 0);
           const ops = Number(h.ops || 0);
           const kg = Number(h.kg || 0);
-          const bg = (ops > 0 || kg > 0) ? 'rgba(16,185,129,.12)' : 'rgba(148,163,184,.14)';
+          const metaOp = Math.max(0, metaOpStep) * (hour + 1);
+          const metaKg = Math.max(0, metaKgStep) * (hour + 1);
+
+          const okOps = metaOp > 0 ? (ops >= metaOp) : null;
+          const okKg = metaKg > 0 ? (kg >= metaKg) : null;
+          const cls = (okOps === true || okKg === true) ? 'dash-row-ok' : ((ops > 0 || kg > 0) ? 'dash-row-has' : '');
+
           return `
-            <div class="col-6 col-md-4 col-lg-3">
-              <div class="card border-0" style="background:${bg}">
-                <div class="card-body p-3">
-                  <div class="fw-bold">${esc(h.label)}</div>
-                  <div class="d-flex justify-content-between mt-2">
-                    <div>
-                      <div class="text-secondary small fw-bold">OP</div>
-                      <div class="h5 fw-bold mb-0">${esc(ops)}</div>
-                    </div>
-                    <div class="text-end">
-                      <div class="text-secondary small fw-bold">KG</div>
-                      <div class="h5 fw-bold mb-0">${esc(fmtKg(kg))}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <tr class="${cls}">
+              <td class="fw-bold">${esc(h.inicio)}</td>
+              <td class="fw-bold">${esc(h.fim)}</td>
+              <td class="text-center fw-bold">${esc(ops)}</td>
+              <td class="text-center fw-bold">${esc(metaOp)}</td>
+              <td class="text-center fw-bold">${esc(fmtKg(kg))}</td>
+              <td class="text-center fw-bold">${esc(fmtKg(metaKg))}</td>
+            </tr>
           `;
         }).join('');
       } catch (e) {
         st.textContent = 'Erro ao carregar o dash.';
-        grid.innerHTML = '<div class="text-danger fw-bold">Erro ao carregar dados.</div>';
+        rowsEl.innerHTML = '<tr><td colspan="6" class="text-danger fw-bold">ERRO AO CARREGAR DADOS.</td></tr>';
       }
     }
 
     btn.addEventListener('click', load);
     dateEl.addEventListener('change', load);
-    load();
+    if (prev) prev.addEventListener('click', () => { dateEl.value = addDays(dateEl.value, -1); load(); });
+    if (next) next.addEventListener('click', () => { dateEl.value = addDays(dateEl.value, +1); load(); });
+    metaOpEl.addEventListener('change', load);
+    metaKgEl.addEventListener('change', load);
+
+    // carrega ao abrir o collapse (primeira vez)
+    const collapse = document.getElementById('dashCollapse');
+    if (collapse) {
+      collapse.addEventListener('shown.bs.collapse', () => load(), { once: true });
+    }
   })();
 </script>
 

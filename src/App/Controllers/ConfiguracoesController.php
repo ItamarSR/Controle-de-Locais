@@ -66,6 +66,17 @@ final class ConfiguracoesController extends BaseController
         if ($scale > 1.20) $scale = 1.20;
         $s->set('print_scale', (string)$scale);
 
+        // Dash Produção (metas)
+        $metaOp = (int)($_POST['dash_meta_op_step'] ?? 4);
+        if ($metaOp < 0) $metaOp = 0;
+        if ($metaOp > 9999) $metaOp = 9999;
+        $s->set('dash_meta_op_step', (string)$metaOp);
+
+        $metaKg = (float)($_POST['dash_meta_kg_step'] ?? 500);
+        if ($metaKg < 0) $metaKg = 0;
+        if ($metaKg > 999999) $metaKg = 999999;
+        $s->set('dash_meta_kg_step', (string)$metaKg);
+
         // Tema (somente Admin)
         if ($nivel === 'admin') {
             $page = trim((string)($_POST['theme_page'] ?? '#f6f7fb'));
