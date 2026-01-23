@@ -11,6 +11,8 @@ use Core\View;
 
 final class OpController extends BaseController
 {
+    private const EMB_PESO_KG = 0.050; // 50g por embalagem (0,050 kg)
+
     private function parseBrNumber(string $s): ?float
     {
         $s = trim($s);
@@ -67,6 +69,7 @@ final class OpController extends BaseController
         $entrada = trim((string)($_POST['entrada'] ?? ''));
         $oleo = trim((string)($_POST['oleo'] ?? ''));
         $saida = trim((string)($_POST['saida'] ?? ''));
+        $qtdeEmb = trim((string)($_POST['qtde_emb'] ?? ''));
         $cor = trim((string)($_POST['cor'] ?? ''));
         $obs = trim((string)($_POST['obs'] ?? ''));
         $retem = (int)($_POST['retem'] ?? 0) === 1 ? 1 : 0;
@@ -91,9 +94,27 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
+        if ($qtdeEmb === '' || !ctype_digit($qtdeEmb)) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb é obrigatório e deve ser um número inteiro.'];
+            Http::redirect('/conferencia/op');
+        }
+        $qtdeEmbInt = (int)$qtdeEmb;
+        if ($qtdeEmbInt < 0 || $qtdeEmbInt > 999999) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb inválida.'];
+            Http::redirect('/conferencia/op');
+        }
+        $totalEmbKg = $this->formatBrNumber($qtdeEmbInt * self::EMB_PESO_KG);
+
         $soma = $vEntrada + $vOleo;
-        $desperdicio = max(0.0, $vSaida - $soma);
+        // Desperdício: SAÍDA - (ENTRADA + ÓLEO) (pode ser negativo)
+        $desperdicio = $vSaida - $soma;
         $despStr = $this->formatBrNumber($desperdicio);
+
+        // Regra: se |desperdício| > 0,400, OBS obrigatório
+        if (abs($desperdicio) > 0.400 && $obs === '') {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'OBS é obrigatório quando o desperdício é maior que 0,400 (positivo ou negativo).'];
+            Http::redirect('/conferencia/op');
+        }
 
         $opModel = new Op();
         $count = $opModel->countByOp($op);
@@ -128,6 +149,8 @@ final class OpController extends BaseController
             'entrada' => $this->formatBrNumber($vEntrada),
             'oleo' => $this->formatBrNumber($vOleo),
             'saida' => $this->formatBrNumber($vSaida),
+            'qtde_emb' => $qtdeEmbInt,
+            'total_emb_kg' => $totalEmbKg,
             'desperdicio' => $despStr,
             'cor' => $cor !== '' ? $cor : null,
             'reacerto' => $reacerto,
@@ -141,11 +164,7 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
-        if ($desperdicio > 0.400) {
-            $_SESSION['flash'] = ['type' => 'warning', 'message' => 'Atenção: Desperdício acima de 0,400 (Saída - (Entrada+Óleo)).'];
-        } else {
-            $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso.'];
-        }
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso.'];
         Http::redirect('/conferencia/op/consulta');
     }
 

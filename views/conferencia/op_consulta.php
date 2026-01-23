@@ -37,6 +37,8 @@ $q = $q ?? '';
             <th class="fw-bold">ENTRADA</th>
             <th class="fw-bold">ÓLEO</th>
             <th class="fw-bold">SAÍDA</th>
+            <th class="fw-bold">QTDE EMB</th>
+            <th class="fw-bold">TOTAL EMB</th>
             <th class="fw-bold">DESPERDÍCIO</th>
             <th class="fw-bold">COR</th>
             <th class="fw-bold">REACERTO</th>
@@ -47,7 +49,7 @@ $q = $q ?? '';
         </thead>
         <tbody>
           <?php if (!$rows): ?>
-            <tr><td colspan="10" class="text-secondary fw-bold p-4">NENHUM REGISTRO.</td></tr>
+            <tr><td colspan="12" class="text-secondary fw-bold p-4">NENHUM REGISTRO.</td></tr>
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
               <tr>
@@ -55,6 +57,8 @@ $q = $q ?? '';
                 <td class="fw-bold"><?= htmlspecialchars((string)($r['entrada'] ?? '')) ?></td>
                 <td class="fw-bold"><?= htmlspecialchars((string)($r['oleo'] ?? '')) ?></td>
                 <td class="fw-bold"><?= htmlspecialchars((string)($r['saida'] ?? '')) ?></td>
+                <td class="fw-bold"><?= htmlspecialchars((string)($r['qtde_emb'] ?? '')) ?></td>
+                <td class="fw-bold"><?= htmlspecialchars((string)($r['total_emb_kg'] ?? '')) ?></td>
                 <td class="fw-bold"><?= htmlspecialchars((string)($r['desperdicio'] ?? '')) ?></td>
                 <td class="fw-bold"><?= htmlspecialchars((string)($r['cor'] ?? '')) ?></td>
                 <td class="fw-bold">
@@ -66,7 +70,7 @@ $q = $q ?? '';
               </tr>
               <?php if (!empty($r['obs'])): ?>
                 <tr>
-                  <td colspan="10" class="px-3 pb-3 text-secondary fw-bold">
+                  <td colspan="12" class="px-3 pb-3 text-secondary fw-bold">
                     OBS: <?= htmlspecialchars((string)$r['obs']) ?>
                   </td>
                 </tr>

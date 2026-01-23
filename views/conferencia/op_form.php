@@ -5,6 +5,7 @@ $data_auto = $data_auto ?? date('d/m/Y H:i');
 $prefill = $prefill ?? [];
 $op_exists = $op_exists ?? false;
 $reacerto_label = $reacerto_label ?? '';
+$prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -17,12 +18,14 @@ $reacerto_label = $reacerto_label ?? '';
 
 <div class="card shadow-sm">
   <div class="card-body p-4">
-    <?php if ($op_exists): ?>
-      <div class="alert alert-danger fw-bold">
-        ESSA OP É REACERTO?
-        <div class="small fw-bold mt-1">Se SIM, o campo Reacerto será preenchido automaticamente.</div>
-      </div>
-    <?php endif; ?>
+    <div id="op-warning-top" class="<?= $op_exists ? '' : 'd-none' ?>">
+      <?php if ($op_exists): ?>
+        <div class="alert alert-danger fw-bold">
+          ESSA OP JÁ EXISTE. <span class="text-decoration-underline">ESSA OP É REACERTO?</span>
+          <div class="small fw-bold mt-1">Se SIM, o campo Reacerto será preenchido automaticamente.</div>
+        </div>
+      <?php endif; ?>
+    </div>
 
     <form method="post" action="<?= htmlspecialchars(\Core\Http::url('/conferencia/op')) ?>" class="needs-validation" novalidate>
       <input type="hidden" name="confirm_reacerto" id="confirm_reacerto" value="">
@@ -62,6 +65,12 @@ $reacerto_label = $reacerto_label ?? '';
           <div class="invalid-feedback">Informe um número.</div>
         </div>
         <div class="col-6 col-md-4">
+          <label class="form-label fw-bold">QTDE EMB</label>
+          <input class="form-control fw-bold" name="qtde_emb" id="qtde_emb" required inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
+          <div class="invalid-feedback">Informe a quantidade.</div>
+          <div class="form-text">Cálculo: QTDE × 0,050kg</div>
+        </div>
+        <div class="col-6 col-md-4">
           <label class="form-label fw-bold">COR</label>
           <input class="form-control upper fw-bold" name="cor" id="cor" required value="<?= htmlspecialchars((string)($prefill['cor'] ?? '')) ?>">
           <div class="invalid-feedback">Informe a cor.</div>
@@ -71,6 +80,10 @@ $reacerto_label = $reacerto_label ?? '';
           <label class="form-label fw-bold">DESPERDÍCIO</label>
           <input class="form-control fw-bold" name="desperdicio" id="desperdicio" readonly value="">
           <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO).</div>
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label fw-bold">TOTAL EMB (KG)</label>
+          <input class="form-control fw-bold" id="total_emb_kg" readonly value="">
         </div>
 
         <div class="col-12 col-md-4">
@@ -84,11 +97,11 @@ $reacerto_label = $reacerto_label ?? '';
 
         <div class="col-12">
           <label class="form-label fw-bold">OBS</label>
-          <textarea class="form-control upper fw-bold" name="obs" rows="3"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
+          <textarea class="form-control upper fw-bold" name="obs" id="obs" rows="3"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
         </div>
       </div>
 
-      <div id="op-warning" class="mt-3 d-none"></div>
+      <div id="op-warning" class="d-none"></div>
       <div id="desp-warning" class="mt-3 d-none"></div>
 
       <div class="d-flex flex-wrap gap-2 mt-4">
@@ -105,23 +118,30 @@ $reacerto_label = $reacerto_label ?? '';
     const op = document.getElementById('op');
     const reacerto = document.getElementById('reacerto');
     const warn = document.getElementById('op-warning');
+    const warnTop = document.getElementById('op-warning-top');
     const warnDesp = document.getElementById('desp-warning');
     const btn = document.getElementById('btn-inserir');
     const confirm = document.getElementById('confirm_reacerto');
     const entrada = document.getElementById('entrada');
     const oleo = document.getElementById('oleo');
     const saida = document.getElementById('saida');
+    const qtdeEmb = document.getElementById('qtde_emb');
+    const totalEmb = document.getElementById('total_emb_kg');
     const desp = document.getElementById('desperdicio');
+    const obs = document.getElementById('obs');
     let t = null;
 
     function setWarn(html, type){
-      warn.className = 'mt-3 alert alert-' + type + ' fw-bold';
-      warn.innerHTML = html;
-      warn.classList.remove('d-none');
+      if (warnTop) {
+        warnTop.innerHTML = '<div class="alert alert-' + type + ' fw-bold">' + html + '</div>';
+        warnTop.classList.remove('d-none');
+      }
     }
     function clearWarn(){
-      warn.classList.add('d-none');
-      warn.innerHTML = '';
+      if (warnTop) {
+        warnTop.classList.add('d-none');
+        warnTop.innerHTML = '';
+      }
     }
 
     function setWarnDesp(msg, type){
@@ -167,21 +187,41 @@ $reacerto_label = $reacerto_label ?? '';
       el.value = v;
     }
 
+    function calcEmbTotal(){
+      if (!qtdeEmb || !totalEmb) return;
+      const v = String(qtdeEmb.value || '').replace(/[^\d]/g,'');
+      qtdeEmb.value = v;
+      if (!v) { totalEmb.value = ''; return; }
+      const q = Number(v);
+      if (!Number.isFinite(q)) { totalEmb.value = ''; return; }
+      const total = q * 0.050; // kg
+      totalEmb.value = fmtBr(total);
+    }
+
     function calcDesperdicio(){
       if (!entrada || !oleo || !saida || !desp) return;
       const e = parseBr(entrada.value);
       const o = parseBr(oleo.value);
       const s = parseBr(saida.value);
       clearWarnDesp();
+      desp.classList.remove('border-danger','border-success');
+      desp.classList.remove('text-danger','text-success');
+      if (obs) obs.required = false;
       if (e === null || o === null || s === null) {
         desp.value = '';
         return;
       }
       const sum = e + o;
-      const d = Math.max(0, s - sum);
+      const d = (s - sum);
       desp.value = fmtBr(d);
-      if (d > 0.400) {
-        setWarnDesp('ALERTA: (SAÍDA - (ENTRADA + ÓLEO)) ACIMA DE 0,400.', 'warning');
+      if (d < -0.400) {
+        desp.classList.add('border-danger','text-danger');
+        if (obs) obs.required = true;
+        setWarnDesp('ALERTA: DESPERDÍCIO MENOR QUE -0,400. OBS É OBRIGATÓRIO.', 'danger');
+      } else if (d > 0.400) {
+        desp.classList.add('border-success','text-success');
+        if (obs) obs.required = true;
+        setWarnDesp('ALERTA: DESPERDÍCIO MAIOR QUE 0,400. OBS É OBRIGATÓRIO.', 'success');
       }
     }
 
@@ -258,10 +298,15 @@ $reacerto_label = $reacerto_label ?? '';
       el.addEventListener('input', () => { maskNumber(el); calcDesperdicio(); });
       el.addEventListener('blur', () => { maskNumber(el); calcDesperdicio(); });
     });
+    if (qtdeEmb) {
+      qtdeEmb.addEventListener('input', () => { calcEmbTotal(); });
+      qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); });
+    }
 
     // prefill
     check();
     calcDesperdicio();
+    calcEmbTotal();
   })();
 </script>
 

@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS `ops` (
   `entrada` VARCHAR(50) NULL,
   `oleo` VARCHAR(50) NULL,
   `saida` VARCHAR(50) NULL,
+  `qtde_emb` INT NULL,
+  `total_emb_kg` VARCHAR(50) NULL,
   `desperdicio` VARCHAR(50) NULL,
   `cor` VARCHAR(50) NULL,
   `reacerto` INT NOT NULL DEFAULT 0,
@@ -125,6 +127,31 @@ SET @__add_ops_desp := (
 PREPARE stmt3 FROM @__add_ops_desp;
 EXECUTE stmt3;
 DEALLOCATE PREPARE stmt3;
+
+-- Migração: adiciona qtde_emb e total_emb_kg em bases já existentes
+SET @__add_ops_qtde := (
+  SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ops' AND COLUMN_NAME = 'qtde_emb') = 0,
+    'ALTER TABLE `ops` ADD COLUMN `qtde_emb` INT NULL AFTER `saida`',
+    'SELECT 1'
+  )
+);
+PREPARE stmt4 FROM @__add_ops_qtde;
+EXECUTE stmt4;
+DEALLOCATE PREPARE stmt4;
+
+SET @__add_ops_total := (
+  SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ops' AND COLUMN_NAME = 'total_emb_kg') = 0,
+    'ALTER TABLE `ops` ADD COLUMN `total_emb_kg` VARCHAR(50) NULL AFTER `qtde_emb`',
+    'SELECT 1'
+  )
+);
+PREPARE stmt5 FROM @__add_ops_total;
+EXECUTE stmt5;
+DEALLOCATE PREPARE stmt5;
 
 /*
   Seed — ADMIN INICIAL (RECOMENDADO: usar script)

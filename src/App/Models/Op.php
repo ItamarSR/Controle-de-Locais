@@ -30,14 +30,16 @@ final class Op
     {
         try {
             $st = $this->pdo->prepare("
-                INSERT INTO ops (op, entrada, oleo, saida, desperdicio, cor, reacerto, obs, retem, responsavel_usuario_id)
-                VALUES (:op, :entrada, :oleo, :saida, :desperdicio, :cor, :reacerto, :obs, :retem, :resp)
+                INSERT INTO ops (op, entrada, oleo, saida, qtde_emb, total_emb_kg, desperdicio, cor, reacerto, obs, retem, responsavel_usuario_id)
+                VALUES (:op, :entrada, :oleo, :saida, :qtde_emb, :total_emb_kg, :desperdicio, :cor, :reacerto, :obs, :retem, :resp)
             ");
             return $st->execute([
                 ':op' => (string)$data['op'],
                 ':entrada' => $data['entrada'] ?? null,
                 ':oleo' => $data['oleo'] ?? null,
                 ':saida' => $data['saida'] ?? null,
+                ':qtde_emb' => $data['qtde_emb'] ?? null,
+                ':total_emb_kg' => $data['total_emb_kg'] ?? null,
                 ':desperdicio' => $data['desperdicio'] ?? null,
                 ':cor' => $data['cor'] ?? null,
                 ':reacerto' => (int)($data['reacerto'] ?? 0),
@@ -46,7 +48,27 @@ final class Op
                 ':resp' => $data['responsavel_usuario_id'] ?? null,
             ]);
         } catch (PDOException $e) {
-            return false;
+            // compatibilidade: bases sem colunas novas
+            try {
+                $st = $this->pdo->prepare("
+                    INSERT INTO ops (op, entrada, oleo, saida, desperdicio, cor, reacerto, obs, retem, responsavel_usuario_id)
+                    VALUES (:op, :entrada, :oleo, :saida, :desperdicio, :cor, :reacerto, :obs, :retem, :resp)
+                ");
+                return $st->execute([
+                    ':op' => (string)$data['op'],
+                    ':entrada' => $data['entrada'] ?? null,
+                    ':oleo' => $data['oleo'] ?? null,
+                    ':saida' => $data['saida'] ?? null,
+                    ':desperdicio' => $data['desperdicio'] ?? null,
+                    ':cor' => $data['cor'] ?? null,
+                    ':reacerto' => (int)($data['reacerto'] ?? 0),
+                    ':obs' => $data['obs'] ?? null,
+                    ':retem' => (int)($data['retem'] ?? 0),
+                    ':resp' => $data['responsavel_usuario_id'] ?? null,
+                ]);
+            } catch (PDOException $e2) {
+                return false;
+            }
         }
     }
 
@@ -62,7 +84,7 @@ final class Op
         }
 
         $sql = "
-            SELECT o.id, o.op, o.entrada, o.oleo, o.saida, o.desperdicio, o.cor, o.reacerto, o.obs, o.retem, o.criado_em,
+            SELECT o.id, o.op, o.entrada, o.oleo, o.saida, o.qtde_emb, o.total_emb_kg, o.desperdicio, o.cor, o.reacerto, o.obs, o.retem, o.criado_em,
                    u.nome AS responsavel_nome
             FROM ops o
             LEFT JOIN usuarios u ON u.id = o.responsavel_usuario_id
