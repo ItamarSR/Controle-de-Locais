@@ -41,6 +41,7 @@ $action = $user
         <select class="form-select" name="nivel_acesso" required>
           <option value="editor" <?= (($user['nivel_acesso'] ?? '') === 'editor') ? 'selected' : '' ?>>Editor</option>
           <option value="editorpro" <?= (($user['nivel_acesso'] ?? '') === 'editorpro') ? 'selected' : '' ?>>EditorPro</option>
+          <option value="conferencia" <?= (($user['nivel_acesso'] ?? '') === 'conferencia') ? 'selected' : '' ?>>Conferência</option>
         </select>
       </div>
 

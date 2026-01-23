@@ -71,4 +71,11 @@ $router->post('/admin/importacao', [\App\Controllers\ImportacaoController::class
 $router->get('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'form']);
 $router->post('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'save']);
 
+// Conferência - OP
+$router->get('/conferencia', [\App\Controllers\ConferenciaController::class, 'dashboard']);
+$router->get('/conferencia/op', [\App\Controllers\OpController::class, 'form']);
+$router->post('/conferencia/op', [\App\Controllers\OpController::class, 'insert']);
+$router->get('/conferencia/op/consulta', [\App\Controllers\OpController::class, 'consulta']);
+$router->get('/conferencia/api/op/{op}', [\App\Controllers\OpController::class, 'apiStatus']);
+
 $router->dispatch(Http::method(), Http::path());

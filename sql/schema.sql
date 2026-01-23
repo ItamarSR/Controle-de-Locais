@@ -8,11 +8,15 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `nome` VARCHAR(120) NOT NULL,
   `email` VARCHAR(150) NOT NULL UNIQUE,
   `senha` VARCHAR(255) NOT NULL,
-  `nivel_acesso` ENUM('admin','editor','editorpro') NOT NULL DEFAULT 'editor',
+  `nivel_acesso` ENUM('admin','editor','editorpro','conferencia') NOT NULL DEFAULT 'editor',
   `primeiro_acesso` TINYINT(1) NOT NULL DEFAULT 1,
   `status` TINYINT(1) NOT NULL DEFAULT 1,
   `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migração: adiciona o nível "conferencia" no enum (para bases já existentes)
+ALTER TABLE `usuarios`
+  MODIFY `nivel_acesso` ENUM('admin','editor','editorpro','conferencia') NOT NULL DEFAULT 'editor';
 
 -- matérias-primas
 CREATE TABLE IF NOT EXISTS `materias_primas` (
@@ -88,6 +92,23 @@ INSERT INTO `configuracoes` (`chave`, `valor`) VALUES
   ('theme_header', '#ffffff'),
   ('theme_footer', '#ffffff')
 ON DUPLICATE KEY UPDATE `valor` = VALUES(`valor`);
+
+-- ordens de produção (OP)
+CREATE TABLE IF NOT EXISTS `ops` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `op` VARCHAR(50) NOT NULL,
+  `entrada` VARCHAR(50) NULL,
+  `oleo` VARCHAR(50) NULL,
+  `saida` VARCHAR(50) NULL,
+  `cor` VARCHAR(50) NULL,
+  `reacerto` INT NOT NULL DEFAULT 0,
+  `obs` TEXT NULL,
+  `retem` TINYINT(1) NOT NULL DEFAULT 0,
+  `responsavel_usuario_id` INT NULL,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_ops_op` (`op`),
+  KEY `idx_ops_criado_em` (`criado_em`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
   Seed — ADMIN INICIAL (RECOMENDADO: usar script)

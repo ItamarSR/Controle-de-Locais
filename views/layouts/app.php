@@ -42,7 +42,12 @@ try {
         <ul class="navbar-nav ms-auto gap-2">
           <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/')) ?>">Público</a></li>
           <?php if (!empty($_SESSION['user_id'])): ?>
-            <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/admin/dashboard')) ?>">Painel</a></li>
+            <?php $nivel = (string)($_SESSION['nivel'] ?? ''); ?>
+            <?php if ($nivel === 'conferencia'): ?>
+              <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/conferencia')) ?>">Conferência</a></li>
+            <?php else: ?>
+              <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/admin/dashboard')) ?>">Painel</a></li>
+            <?php endif; ?>
             <li class="nav-item"><a class="nav-link text-danger" href="<?= htmlspecialchars(Http::url('/logout')) ?>">Sair</a></li>
           <?php else: ?>
             <li class="nav-item"><a class="btn btn-primary btn-sm px-3" href="<?= htmlspecialchars(Http::url('/login')) ?>">Entrar</a></li>

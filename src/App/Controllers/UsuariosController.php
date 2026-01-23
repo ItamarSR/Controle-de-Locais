@@ -41,7 +41,7 @@ final class UsuariosController extends BaseController
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Email inválido.'];
             Http::redirect('/admin/usuarios/novo');
         }
-        if (!in_array($data['nivel_acesso'], ['editor', 'editorpro'], true)) {
+        if (!in_array($data['nivel_acesso'], ['editor', 'editorpro', 'conferencia'], true)) {
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Nível de acesso inválido.'];
             Http::redirect('/admin/usuarios/novo');
         }
@@ -96,7 +96,7 @@ final class UsuariosController extends BaseController
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Nova senha deve ter no mínimo 6 caracteres.'];
             Http::redirect('/admin/usuarios/' . $id . '/editar');
         }
-        if (!in_array($data['nivel_acesso'], ['editor', 'editorpro'], true)) {
+        if (!in_array($data['nivel_acesso'], ['editor', 'editorpro', 'conferencia'], true)) {
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Nível de acesso inválido.'];
             Http::redirect('/admin/usuarios/' . $id . '/editar');
         }
