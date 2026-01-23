@@ -4,13 +4,21 @@ html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ari
   --app-radius: 16px;
   --app-border: rgba(15, 23, 42, 0.10);
   --app-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  --app-surface: rgba(255,255,255,.78);
+  --app-surface-2: rgba(255,255,255,.64);
+  --app-text: #0f172a;
+  --app-muted: rgba(15,23,42,.65);
+  --app-focus: rgba(79,70,229,.35);
 }
 
 body{
   background-color: var(--theme-page, #f6f7fb);
   background-image:
-    radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.18), transparent 60%),
-    radial-gradient(900px 500px at 90% 0%, rgba(168,85,247,.12), transparent 55%);
+    radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.22), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(168,85,247,.16), transparent 55%),
+    radial-gradient(1000px 700px at 50% 100%, rgba(16,185,129,.10), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  color: var(--app-text);
 }
 
 .navbar{
@@ -21,6 +29,7 @@ body{
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   box-shadow: var(--app-shadow);
+  background: var(--app-surface);
 }
 
 .btn{
@@ -35,7 +44,33 @@ body{
   filter: brightness(1.02);
 }
 
+.btn-outline-secondary{
+  border-color: rgba(148,163,184,.7);
+}
+
+.btn-outline-secondary:hover{
+  background: rgba(148,163,184,.16);
+}
+
 .navbar-brand { letter-spacing: -0.02em; }
+
+.form-control,
+.form-select,
+.form-control-color{
+  border-radius: 14px;
+  border-color: rgba(148,163,184,.55);
+  background: rgba(255,255,255,.82);
+  font-weight: 700;
+}
+
+.form-control:focus,
+.form-select:focus{
+  border-color: rgba(79,70,229,.65);
+  box-shadow: 0 0 0 .25rem var(--app-focus);
+}
+
+.form-text{ color: var(--app-muted); font-weight: 600; }
+.text-secondary{ color: var(--app-muted) !important; }
 
 .table > :not(caption) > * > *{
   padding: .9rem .9rem;
