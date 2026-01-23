@@ -10,6 +10,58 @@ use Core\View;
 
 final class ConfiguracoesController extends BaseController
 {
+    private function uploadLogoIfAny(Settings $s): void
+    {
+        if (!isset($_FILES['logo_file']) || !is_array($_FILES['logo_file'])) return;
+        $f = $_FILES['logo_file'];
+        if (($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return;
+        if (($f['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Falha no upload da logo.'];
+            Http::redirect('/admin/configuracoes');
+        }
+
+        $tmp = (string)($f['tmp_name'] ?? '');
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Upload inválido da logo.'];
+            Http::redirect('/admin/configuracoes');
+        }
+
+        $mime = (string)@mime_content_type($tmp);
+        $ext = match ($mime) {
+            'image/png' => 'png',
+            'image/jpeg' => 'jpg',
+            'image/webp' => 'webp',
+            default => '',
+        };
+        if ($ext === '') {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Formato de logo inválido. Envie PNG, JPG/JPEG ou WEBP.'];
+            Http::redirect('/admin/configuracoes');
+        }
+
+        $name = 'logo.' . $ext;
+        $rel = '/uploads/' . $name;
+
+        $targets = [
+            dirname(__DIR__, 3) . '/public' . $rel, // /public/uploads
+            dirname(__DIR__, 3) . $rel,            // /uploads (webroot alternativo)
+        ];
+
+        foreach ($targets as $dest) {
+            $dir = dirname($dest);
+            if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        }
+
+        // move uma vez e copia para o segundo destino
+        $first = $targets[0];
+        if (!@move_uploaded_file($tmp, $first)) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar a logo no servidor.'];
+            Http::redirect('/admin/configuracoes');
+        }
+        @copy($first, $targets[1]);
+
+        $s->set('logo_path', $rel);
+    }
+
     public function form(): void
     {
         $this->requireRole(['editorpro', 'admin']);
@@ -103,6 +155,9 @@ final class ConfiguracoesController extends BaseController
                 $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Não foi possível salvar as cores do tema.'];
                 Http::redirect('/admin/configuracoes');
             }
+
+            // Upload da logo (opcional)
+            $this->uploadLogoIfAny($s);
         }
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Configurações salvas.'];

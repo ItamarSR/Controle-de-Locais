@@ -1,17 +1,31 @@
 <?php
 $title = 'Consulta pública de locais';
+$logoPath = null;
+try {
+  $s = new \App\Models\Settings();
+  $logoPath = (string)($s->get('logo_path', '') ?? '');
+  if (trim($logoPath) === '') $logoPath = null;
+} catch (Throwable $e) {
+  $logoPath = null;
+}
 ?>
 
 <div class="row g-3 align-items-stretch">
   <div class="col-12">
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
-          <div>
-            <h1 class="h4 mb-1">Consulta pública de locais</h1>
-            <p class="text-secondary mb-0">Digite o <b>Código</b> para localizar o estoque e imprimir etiqueta BOPP 100×60.</p>
-          </div>
-          <a class="btn btn-outline-primary" href="<?= htmlspecialchars(\Core\Http::url('/login')) ?>">Área administrativa</a>
+        <div class="d-flex justify-content-center">
+          <?php if (is_string($logoPath) && $logoPath !== ''): ?>
+            <img
+              src="<?= htmlspecialchars(\Core\Http::url($logoPath)) ?>"
+              alt="Logo"
+              width="300"
+              height="73"
+              style="object-fit:contain;border:1px solid rgba(15,23,42,.18);border-radius:16px;background:rgba(255,255,255,.65);padding:10px;"
+            >
+          <?php else: ?>
+            <div class="text-secondary fw-bold">LOGO NÃO CONFIGURADA (ADMIN &gt; CONFIGURAÇÕES)</div>
+          <?php endif; ?>
         </div>
       </div>
     </div>

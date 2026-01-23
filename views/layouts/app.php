@@ -62,7 +62,7 @@ try {
     </div>
   </nav>
 
-  <main class="container py-4">
+  <main class="container py-4 flex-grow-1">
     <?php if (is_array($flash) && !empty($flash['message'])): ?>
       <div class="alert alert-<?= htmlspecialchars($flash['type'] ?? 'info') ?> alert-dismissible fade show" role="alert">
         <?= htmlspecialchars($flash['message']) ?>
@@ -73,7 +73,7 @@ try {
     <?= $content ?>
   </main>
 
-  <footer class="border-top" style="background: var(--theme-footer);">
+  <footer class="border-top mt-auto" style="background: var(--theme-footer);">
     <div class="container py-3 small text-secondary fw-bold">
       Controle de Locais e Inventário
     </div>

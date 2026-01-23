@@ -1,4 +1,5 @@
 html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+html, body { height: 100%; }
 
 :root{
   --app-radius: 16px;
@@ -19,6 +20,9 @@ body{
     radial-gradient(1000px 700px at 50% 100%, rgba(16,185,129,.10), transparent 55%),
     linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
   color: var(--theme-text, var(--app-text));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .navbar{

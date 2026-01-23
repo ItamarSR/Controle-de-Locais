@@ -94,7 +94,8 @@ INSERT INTO `configuracoes` (`chave`, `valor`) VALUES
   ('theme_header', '#ffffff'),
   ('theme_footer', '#ffffff'),
   ('theme_form', '#ffffff'),
-  ('theme_text', '#0f172a')
+  ('theme_text', '#0f172a'),
+  ('logo_path', '')
 ON DUPLICATE KEY UPDATE `valor` = VALUES(`valor`);
 
 -- ordens de produção (OP)

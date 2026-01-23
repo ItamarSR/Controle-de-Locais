@@ -17,6 +17,7 @@ $themeHeader = (string)($settings['theme_header'] ?? '#ffffff');
 $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
 $themeForm = (string)($settings['theme_form'] ?? '#ffffff');
 $themeText = (string)($settings['theme_text'] ?? '#0f172a');
+$logoPath = (string)($settings['logo_path'] ?? '');
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -37,7 +38,7 @@ $themeText = (string)($settings['theme_text'] ?? '#0f172a');
   </div>
 <?php endif; ?>
 
-<form method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/configuracoes')) ?>" class="needs-validation" novalidate>
+<form method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/configuracoes')) ?>" enctype="multipart/form-data" class="needs-validation" novalidate>
   <div class="card shadow-sm mb-3">
     <div class="card-body p-4">
       <h2 class="h6 fw-bold mb-3">Impressão (Admin / EditorPro)</h2>
@@ -132,6 +133,31 @@ $themeText = (string)($settings['theme_text'] ?? '#0f172a');
         </div>
       </div>
       <div class="form-text mt-2">As cores serão aplicadas no sistema inteiro.</div>
+
+      <hr class="my-4">
+
+      <h2 class="h6 fw-bold mb-3">Logo (somente Admin)</h2>
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-bold">Upload da logo (recomendado 300×73)</label>
+          <input type="file" class="form-control" name="logo_file" accept="image/png,image/jpeg,image/webp">
+          <div class="form-text">Formatos aceitos: PNG, JPG/JPEG, WEBP.</div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-label fw-bold">Prévia</div>
+          <?php if (is_string($logoPath) && trim($logoPath) !== ''): ?>
+            <img
+              src="<?= htmlspecialchars(\Core\Http::url($logoPath)) ?>"
+              alt="Logo atual"
+              width="300"
+              height="73"
+              style="object-fit:contain;border:1px solid rgba(15,23,42,.18);border-radius:16px;background:rgba(255,255,255,.65);padding:10px;"
+            >
+          <?php else: ?>
+            <div class="text-secondary small fw-bold">Nenhuma logo configurada.</div>
+          <?php endif; ?>
+        </div>
+      </div>
     </div>
   </div>
   <?php endif; ?>
