@@ -30,14 +30,15 @@ final class Op
     {
         try {
             $st = $this->pdo->prepare("
-                INSERT INTO ops (op, entrada, oleo, saida, cor, reacerto, obs, retem, responsavel_usuario_id)
-                VALUES (:op, :entrada, :oleo, :saida, :cor, :reacerto, :obs, :retem, :resp)
+                INSERT INTO ops (op, entrada, oleo, saida, desperdicio, cor, reacerto, obs, retem, responsavel_usuario_id)
+                VALUES (:op, :entrada, :oleo, :saida, :desperdicio, :cor, :reacerto, :obs, :retem, :resp)
             ");
             return $st->execute([
                 ':op' => (string)$data['op'],
                 ':entrada' => $data['entrada'] ?? null,
                 ':oleo' => $data['oleo'] ?? null,
                 ':saida' => $data['saida'] ?? null,
+                ':desperdicio' => $data['desperdicio'] ?? null,
                 ':cor' => $data['cor'] ?? null,
                 ':reacerto' => (int)($data['reacerto'] ?? 0),
                 ':obs' => $data['obs'] ?? null,
@@ -61,7 +62,7 @@ final class Op
         }
 
         $sql = "
-            SELECT o.id, o.op, o.entrada, o.oleo, o.saida, o.cor, o.reacerto, o.obs, o.retem, o.criado_em,
+            SELECT o.id, o.op, o.entrada, o.oleo, o.saida, o.desperdicio, o.cor, o.reacerto, o.obs, o.retem, o.criado_em,
                    u.nome AS responsavel_nome
             FROM ops o
             LEFT JOIN usuarios u ON u.id = o.responsavel_usuario_id

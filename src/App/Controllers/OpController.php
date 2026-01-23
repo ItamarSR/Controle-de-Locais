@@ -11,6 +11,24 @@ use Core\View;
 
 final class OpController extends BaseController
 {
+    private function parseBrNumber(string $s): ?float
+    {
+        $s = trim($s);
+        if ($s === '') return null;
+        // remove separador de milhar (.) e troca decimal (,) por (.)
+        $s = str_replace([' ', "\u{00A0}"], '', $s);
+        $s = str_replace('.', '', $s);
+        $s = str_replace(',', '.', $s);
+        if (!is_numeric($s)) return null;
+        return (float)$s;
+    }
+
+    private function formatBrNumber(float $v): string
+    {
+        // 3 casas para suportar 32,220
+        return number_format($v, 3, ',', '');
+    }
+
     public function form(): void
     {
         $this->requireRole(['conferencia', 'admin', 'editorpro']);
@@ -56,10 +74,26 @@ final class OpController extends BaseController
         $confirm = (string)($_POST['confirm_reacerto'] ?? '');
         $confirm = $confirm === 'sim' ? 'sim' : ($confirm === 'nao' ? 'nao' : '');
 
-        if ($op === '') {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Informe a OP.'];
+        if ($op === '' || $entrada === '' || $oleo === '' || $saida === '' || $cor === '') {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Preencha OP, Entrada, Óleo, Saída e Cor.'];
             Http::redirect('/conferencia/op');
         }
+        if ($retem !== 1) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'O campo RETÉM é obrigatório (selecione SIM).'];
+            Http::redirect('/conferencia/op');
+        }
+
+        $vEntrada = $this->parseBrNumber($entrada);
+        $vOleo = $this->parseBrNumber($oleo);
+        $vSaida = $this->parseBrNumber($saida);
+        if ($vEntrada === null || $vOleo === null || $vSaida === null) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Entrada, Óleo e Saída devem ser números válidos.'];
+            Http::redirect('/conferencia/op');
+        }
+
+        $soma = $vEntrada + $vOleo;
+        $desperdicio = max(0.0, $vSaida - $soma);
+        $despStr = $this->formatBrNumber($desperdicio);
 
         $opModel = new Op();
         $count = $opModel->countByOp($op);
@@ -91,9 +125,10 @@ final class OpController extends BaseController
 
         $ok = $opModel->insert([
             'op' => $op,
-            'entrada' => $entrada !== '' ? $entrada : null,
-            'oleo' => $oleo !== '' ? $oleo : null,
-            'saida' => $saida !== '' ? $saida : null,
+            'entrada' => $this->formatBrNumber($vEntrada),
+            'oleo' => $this->formatBrNumber($vOleo),
+            'saida' => $this->formatBrNumber($vSaida),
+            'desperdicio' => $despStr,
             'cor' => $cor !== '' ? $cor : null,
             'reacerto' => $reacerto,
             'obs' => $obs !== '' ? $obs : null,
@@ -106,7 +141,11 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso.'];
+        if ($desperdicio > 0.400) {
+            $_SESSION['flash'] = ['type' => 'warning', 'message' => 'Atenção: Desperdício acima de 0,400 (Saída - (Entrada+Óleo)).'];
+        } else {
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso.'];
+        }
         Http::redirect('/conferencia/op/consulta');
     }
 

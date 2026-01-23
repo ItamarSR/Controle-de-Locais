@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS `ops` (
   `entrada` VARCHAR(50) NULL,
   `oleo` VARCHAR(50) NULL,
   `saida` VARCHAR(50) NULL,
+  `desperdicio` VARCHAR(50) NULL,
   `cor` VARCHAR(50) NULL,
   `reacerto` INT NOT NULL DEFAULT 0,
   `obs` TEXT NULL,
@@ -111,6 +112,19 @@ CREATE TABLE IF NOT EXISTS `ops` (
   KEY `idx_ops_op` (`op`),
   KEY `idx_ops_criado_em` (`criado_em`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migração: adiciona coluna desperdicio em bases já existentes
+SET @__add_ops_desp := (
+  SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ops' AND COLUMN_NAME = 'desperdicio') = 0,
+    'ALTER TABLE `ops` ADD COLUMN `desperdicio` VARCHAR(50) NULL AFTER `saida`',
+    'SELECT 1'
+  )
+);
+PREPARE stmt3 FROM @__add_ops_desp;
+EXECUTE stmt3;
+DEALLOCATE PREPARE stmt3;
 
 /*
   Seed — ADMIN INICIAL (RECOMENDADO: usar script)
