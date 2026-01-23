@@ -161,52 +161,58 @@ try {
       </div>
       <div class="modal-body p-3 p-md-4">
         <div class="dash-wrap dash-compact">
-          <div class="dash-top mb-2">
-            <div class="dash-kpi">
-              <div class="dash-kpi-title">TOTAL OPS</div>
-              <div class="dash-kpi-value" id="dash-total-ops">0</div>
-            </div>
-            <div class="dash-kpi">
-              <div class="dash-kpi-title">TOTAL KG</div>
-              <div class="dash-kpi-value" id="dash-total-kg">0</div>
-            </div>
-            <div class="dash-date">
-              <div class="dash-date-title">DATA</div>
-              <div class="dash-date-controls">
-                <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-prev" type="button">-</button>
-                <input type="date" class="form-control form-control-sm fw-bold" id="dash-date" value="<?= htmlspecialchars(date('Y-m-d')) ?>">
-                <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-next" type="button">+</button>
-                <button class="btn btn-primary btn-sm fw-bold" id="dash-refresh" type="button">OK</button>
+          <div class="dash-fixed">
+            <div class="dash-fixed-inner">
+              <div class="dash-top mb-2">
+                <div class="dash-kpi dash-kpi-ops">
+                  <div class="dash-kpi-title">TOTAL OPS</div>
+                  <div class="dash-kpi-value" id="dash-total-ops">0</div>
+                </div>
+                <div class="dash-kpi dash-kpi-kg">
+                  <div class="dash-kpi-title">TOTAL KG</div>
+                  <div class="dash-kpi-value" id="dash-total-kg">0</div>
+                </div>
+                <div class="dash-date">
+                  <div class="dash-date-title">DATA</div>
+                  <div class="dash-date-controls">
+                    <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-prev" type="button">-</button>
+                    <input type="date" class="form-control form-control-sm fw-bold" id="dash-date" value="<?= htmlspecialchars(date('Y-m-d')) ?>">
+                    <button class="btn btn-outline-secondary btn-sm fw-bold" id="dash-next" type="button">+</button>
+                    <button class="btn btn-primary btn-sm fw-bold" id="dash-refresh" type="button">OK</button>
+                  </div>
+                </div>
+                <div class="dash-meta">
+                  <div class="dash-meta-title">META OP</div>
+                  <input class="form-control form-control-sm fw-bold" id="dash-meta-op" type="number" min="0" value="4">
+                </div>
+                <div class="dash-meta">
+                  <div class="dash-meta-title">META KG</div>
+                  <input class="form-control form-control-sm fw-bold" id="dash-meta-kg" type="number" min="0" step="0.1" value="500">
+                </div>
               </div>
-            </div>
-            <div class="dash-meta">
-              <div class="dash-meta-title">META OP</div>
-              <input class="form-control form-control-sm fw-bold" id="dash-meta-op" type="number" min="0" value="4">
-            </div>
-            <div class="dash-meta">
-              <div class="dash-meta-title">META KG</div>
-              <input class="form-control form-control-sm fw-bold" id="dash-meta-kg" type="number" min="0" step="0.1" value="500">
+
+              <div id="dash-status" class="dash-status text-secondary small fw-bold"></div>
             </div>
           </div>
 
-          <div id="dash-status" class="dash-status text-secondary small fw-bold mb-2"></div>
-
-          <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0 dash-table">
-              <thead class="table-light">
-                <tr>
-                  <th class="fw-bold">INÍCIO</th>
-                  <th class="fw-bold">FIM</th>
-                  <th class="fw-bold text-center">OPS</th>
-                  <th class="fw-bold text-center">META OP</th>
-                  <th class="fw-bold text-center">KG</th>
-                  <th class="fw-bold text-center">META KG</th>
-                </tr>
-              </thead>
-              <tbody id="dash-rows">
-                <tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>
-              </tbody>
-            </table>
+          <div class="dash-scroll mt-2">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0 dash-table">
+                <thead class="table-light">
+                  <tr>
+                    <th class="fw-bold">INÍCIO</th>
+                    <th class="fw-bold">FIM</th>
+                    <th class="fw-bold text-center">OPS</th>
+                    <th class="fw-bold text-center">META OP</th>
+                    <th class="fw-bold text-center">KG</th>
+                    <th class="fw-bold text-center">META KG</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-rows">
+                  <tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
