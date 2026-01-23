@@ -34,26 +34,26 @@ ok('routing: subdir root maps to empty path', $path === '', "got '".$path."'");
 $path2 = resolve_path('/almoxarifado/index.php', '/almoxarifado/admin/dashboard');
 ok('routing: subdir admin/dashboard -> admin/dashboard', $path2 === 'admin/dashboard', $path2);
 
-// Test 2: entrypoints reference bootstrap/autoloader
+// Test 2: entrypoints reference current front controller/autoloader
 $rootIndex = file_get_contents(__DIR__ . '/../index.php');
 $publicIndex = file_get_contents(__DIR__ . '/../public/index.php');
 
-$rootHasBootstrap = strpos($rootIndex, "src/bootstrap.php") !== false;
-$publicHasBootstrap = strpos($publicIndex, "src/bootstrap.php") !== false;
-ok('entrypoint: root uses src/bootstrap.php', $rootHasBootstrap, 'expected require of src/bootstrap.php');
-ok('entrypoint: public uses src/bootstrap.php', $publicHasBootstrap, 'expected require of src/bootstrap.php');
+$rootForwardsToPublic = (strpos($rootIndex, "public/index.php") !== false);
+$publicHasAutoloadFallback = (strpos($publicIndex, "src/autoload_fallback.php") !== false);
+ok('entrypoint: root forwards to public/index.php', $rootForwardsToPublic, 'expected require of public/index.php');
+ok('entrypoint: public uses src/autoload_fallback.php', $publicHasAutoloadFallback, 'expected require of src/autoload_fallback.php');
 
 // Test 3: import view accepts CSV and documents fallback
-$importView = file_get_contents(__DIR__ . '/../src/views/admin/import-excel.php');
+$importView = file_get_contents(__DIR__ . '/../views/admin/importacao/form.php');
 $hasCsvAccept = strpos($importView, 'accept=".csv') !== false || strpos($importView, "accept='.csv") !== false;
 ok('view: import-excel accepts .csv', $hasCsvAccept);
 $hasCsvFallbackNote = stripos($importView, 'fallback') !== false || stripos($importView, 'CSV') !== false;
 ok('view: import-excel documents CSV fallback', $hasCsvFallbackNote);
 
-// Test 4: ImportController contains CSV parser (fgetcsv)
-$importController = file_get_contents(__DIR__ . '/../src/controllers/ImportController.php');
+// Test 4: ImportacaoController contains CSV parser (fgetcsv)
+$importController = file_get_contents(__DIR__ . '/../src/App/Controllers/ImportacaoController.php');
 $hasFgetcsv = strpos($importController, 'fgetcsv') !== false;
-$hasCsvBranch = strpos($importController, "extension === 'csv'") !== false || strpos($importController, "extension === \"csv\"") !== false;
+$hasCsvBranch = (strpos($importController, "\$ext === 'csv'") !== false) || (strpos($importController, "\$ext === \"csv\"") !== false);
 ok('controller: ImportController implements CSV parsing', $hasFgetcsv && $hasCsvBranch);
 
 // Summary

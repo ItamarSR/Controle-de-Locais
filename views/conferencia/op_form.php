@@ -63,11 +63,12 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
           <label class="form-label fw-bold">SAÍDA</label>
           <input class="form-control fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
           <div class="invalid-feedback">Informe um número.</div>
+          <div class="form-text" id="saida-liquida-txt">SAÍDA LÍQUIDA = SAÍDA - TOTAL EMB</div>
         </div>
         <div class="col-6 col-md-4">
           <label class="form-label fw-bold">QTDE EMB</label>
-          <input class="form-control fw-bold" name="qtde_emb" id="qtde_emb" required inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
-          <div class="invalid-feedback">Informe a quantidade.</div>
+          <input class="form-control fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
+          <div class="invalid-feedback">Qtde Emb é obrigatória quando ENTRADA &gt; 100.</div>
           <div class="form-text">Cálculo: QTDE × 0,050kg</div>
         </div>
         <div class="col-6 col-md-4">
@@ -161,30 +162,20 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       const n = Number(v);
       return isNaN(n) ? null : n;
     }
-    function fmtBr(n){
-      return n.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    function fmt3(n){
+      if (!Number.isFinite(n)) return '';
+      // sem separador de milhar (ex.: 1250,000)
+      return n.toFixed(3).replace('.', ',');
     }
 
-    function maskNumber(el){
-      let v = String(el.value || '');
-      v = v.replace(/\./g, ','); // troca ponto por vírgula
-      v = v.replace(/[^\d,]/g,'');
-      const parts = v.split(',');
-      let intPart = parts[0] || '';
-      let decPart = parts[1] || '';
-      if (parts.length > 2) {
-        decPart = parts.slice(1).join('').slice(0,3);
-      }
-      decPart = decPart.slice(0,3);
-      // auto vírgula com 3 casas apenas quando tiver muitos dígitos (evita 1250 virar 1,250)
-      if (parts.length === 1 && intPart.length >= 5) {
-        decPart = intPart.slice(-3);
-        intPart = intPart.slice(0, -3);
-        v = intPart + ',' + decPart;
-      } else {
-        v = parts.length > 1 ? (intPart + ',' + decPart) : intPart;
-      }
-      el.value = v;
+    // Máscara de peso (3 casas decimais) digitando da direita para esquerda:
+    // 1250 -> 1,250 | 12230 -> 12,230 | 1250000 -> 1250,000
+    function maskWeight(el){
+      const digits = String(el.value || '').replace(/\D/g,'');
+      if (!digits) { el.value = ''; return; }
+      const dec = digits.slice(-3).padStart(3, '0');
+      const intPart = digits.length > 3 ? digits.slice(0, -3) : '0';
+      el.value = intPart + ',' + dec;
     }
 
     function calcEmbTotal(){
@@ -195,7 +186,32 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       const q = Number(v);
       if (!Number.isFinite(q)) { totalEmb.value = ''; return; }
       const total = q * 0.050; // kg
-      totalEmb.value = fmtBr(total);
+      totalEmb.value = fmt3(total);
+    }
+
+    function updateQtdeRequired(){
+      if (!entrada || !qtdeEmb) return;
+      const e = parseBr(entrada.value);
+      if (e !== null && e > 100) {
+        qtdeEmb.required = true;
+      } else {
+        qtdeEmb.required = false;
+      }
+    }
+
+    function getTotalEmbKg(){
+      const q = qtdeEmb && qtdeEmb.value ? Number(String(qtdeEmb.value).replace(/\D/g,'')) : 0;
+      return (Number.isFinite(q) ? (q * 0.050) : 0);
+    }
+
+    function applySaidaLiquida(){
+      if (!saida) return;
+      const s = parseBr(saida.value);
+      if (s === null) return;
+      const totalEmbKg = getTotalEmbKg();
+      if (totalEmbKg <= 0) return;
+      const liquida = s - totalEmbKg;
+      saida.value = fmt3(liquida);
     }
 
     function calcDesperdicio(){
@@ -211,9 +227,13 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         desp.value = '';
         return;
       }
+      // Saída líquida descontando embalagens (se informado)
+      const totalEmbKg = getTotalEmbKg();
+      const saidaLiquida = s - totalEmbKg;
+
       const sum = e + o;
-      const d = (s - sum);
-      desp.value = fmtBr(d);
+      const d = (saidaLiquida - sum);
+      desp.value = fmt3(d);
       if (d < -0.400) {
         desp.classList.add('border-danger','text-danger');
         if (obs) obs.required = true;
@@ -295,16 +315,17 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     // Máscara e cálculo
     [entrada, oleo, saida].forEach(el => {
       if (!el) return;
-      el.addEventListener('input', () => { maskNumber(el); calcDesperdicio(); });
-      el.addEventListener('blur', () => { maskNumber(el); calcDesperdicio(); });
+      el.addEventListener('input', () => { maskWeight(el); updateQtdeRequired(); calcDesperdicio(); });
+      el.addEventListener('blur', () => { maskWeight(el); updateQtdeRequired(); if (el === saida) applySaidaLiquida(); calcDesperdicio(); });
     });
     if (qtdeEmb) {
-      qtdeEmb.addEventListener('input', () => { calcEmbTotal(); });
-      qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); });
+      qtdeEmb.addEventListener('input', () => { updateQtdeRequired(); calcEmbTotal(); calcDesperdicio(); });
+      qtdeEmb.addEventListener('blur', () => { updateQtdeRequired(); calcEmbTotal(); applySaidaLiquida(); calcDesperdicio(); });
     }
 
     // prefill
     check();
+    updateQtdeRequired();
     calcDesperdicio();
     calcEmbTotal();
   })();

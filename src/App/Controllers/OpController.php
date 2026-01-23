@@ -94,20 +94,32 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
-        if ($qtdeEmb === '' || !ctype_digit($qtdeEmb)) {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb é obrigatório e deve ser um número inteiro.'];
+        // Qtde Emb: obrigatório apenas quando ENTRADA > 100kg
+        $qtdeEmbInt = null;
+        if ($qtdeEmb !== '') {
+            if (!ctype_digit($qtdeEmb)) {
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb deve ser um número inteiro.'];
+                Http::redirect('/conferencia/op');
+            }
+            $qtdeEmbInt = (int)$qtdeEmb;
+            if ($qtdeEmbInt < 0 || $qtdeEmbInt > 999999) {
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb inválida.'];
+                Http::redirect('/conferencia/op');
+            }
+        } elseif ($vEntrada > 100) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb é obrigatório quando ENTRADA é maior que 100kg.'];
             Http::redirect('/conferencia/op');
         }
-        $qtdeEmbInt = (int)$qtdeEmb;
-        if ($qtdeEmbInt < 0 || $qtdeEmbInt > 999999) {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb inválida.'];
-            Http::redirect('/conferencia/op');
-        }
-        $totalEmbKg = $this->formatBrNumber($qtdeEmbInt * self::EMB_PESO_KG);
+
+        $totalEmbKgNum = ($qtdeEmbInt !== null ? ($qtdeEmbInt * self::EMB_PESO_KG) : 0.0);
+        $totalEmbKg = $qtdeEmbInt !== null ? $this->formatBrNumber($totalEmbKgNum) : null;
+
+        // Regra: SAÍDA deve descontar o TOTAL EMB (KG)
+        $vSaidaLiquida = $vSaida - $totalEmbKgNum;
 
         $soma = $vEntrada + $vOleo;
         // Desperdício: SAÍDA - (ENTRADA + ÓLEO) (pode ser negativo)
-        $desperdicio = $vSaida - $soma;
+        $desperdicio = $vSaidaLiquida - $soma;
         $despStr = $this->formatBrNumber($desperdicio);
 
         // Regra: se |desperdício| > 0,400, OBS obrigatório
@@ -126,7 +138,16 @@ final class OpController extends BaseController
                 'title' => 'Cadastrar OP',
                 'responsavel' => $u,
                 'data_auto' => date('d/m/Y H:i'),
-                'prefill' => compact('op', 'entrada', 'oleo', 'saida', 'cor', 'obs', 'retem'),
+                'prefill' => [
+                    'op' => $op,
+                    'entrada' => $entrada,
+                    'oleo' => $oleo,
+                    'saida' => $saida,
+                    'qtde_emb' => $qtdeEmb,
+                    'cor' => $cor,
+                    'obs' => $obs,
+                    'retem' => $retem,
+                ],
                 'op_exists' => true,
                 'reacerto_label' => ($count) . 'º REACERTO',
                 'reacerto_next' => $count,
@@ -148,7 +169,7 @@ final class OpController extends BaseController
             'op' => $op,
             'entrada' => $this->formatBrNumber($vEntrada),
             'oleo' => $this->formatBrNumber($vOleo),
-            'saida' => $this->formatBrNumber($vSaida),
+            'saida' => $this->formatBrNumber($vSaidaLiquida),
             'qtde_emb' => $qtdeEmbInt,
             'total_emb_kg' => $totalEmbKg,
             'desperdicio' => $despStr,
