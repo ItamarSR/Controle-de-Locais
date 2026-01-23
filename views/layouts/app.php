@@ -31,8 +31,8 @@ try {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="<?= htmlspecialchars(Http::url('/assets/app.css')) ?>" rel="stylesheet">
 </head>
-<body class="bg-body-tertiary" style="background: <?= htmlspecialchars($themePage) ?>;">
-  <nav class="navbar navbar-expand-lg border-bottom sticky-top" style="background: <?= htmlspecialchars($themeHeader) ?>;">
+<body class="bg-body-tertiary" style="--theme-page: <?= htmlspecialchars($themePage) ?>; --theme-header: <?= htmlspecialchars($themeHeader) ?>; --theme-footer: <?= htmlspecialchars($themeFooter) ?>;">
+  <nav class="navbar navbar-expand-lg border-bottom sticky-top" style="background: var(--theme-header);">
     <div class="container">
       <a class="navbar-brand fw-bold" href="<?= htmlspecialchars(Http::url('/')) ?>">Almoxarifado</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
@@ -43,9 +43,10 @@ try {
           <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/')) ?>">Público</a></li>
           <?php if (!empty($_SESSION['user_id'])): ?>
             <?php $nivel = (string)($_SESSION['nivel'] ?? ''); ?>
-            <?php if ($nivel === 'conferencia'): ?>
+            <?php if (in_array($nivel, ['conferencia', 'admin', 'editorpro'], true)): ?>
               <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/conferencia')) ?>">Conferência</a></li>
-            <?php else: ?>
+            <?php endif; ?>
+            <?php if ($nivel !== 'conferencia'): ?>
               <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/admin/dashboard')) ?>">Painel</a></li>
             <?php endif; ?>
             <li class="nav-item"><a class="nav-link text-danger" href="<?= htmlspecialchars(Http::url('/logout')) ?>">Sair</a></li>
@@ -68,7 +69,7 @@ try {
     <?= $content ?>
   </main>
 
-  <footer class="border-top" style="background: <?= htmlspecialchars($themeFooter) ?>;">
+  <footer class="border-top" style="background: var(--theme-footer);">
     <div class="container py-3 small text-secondary fw-bold">
       Controle de Locais e Inventário
     </div>

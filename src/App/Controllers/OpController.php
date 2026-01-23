@@ -13,7 +13,7 @@ final class OpController extends BaseController
 {
     public function form(): void
     {
-        $this->requireRole(['conferencia']);
+        $this->requireRole(['conferencia', 'admin', 'editorpro']);
         $u = (new User())->findById((int)($_SESSION['user_id'] ?? 0));
 
         echo View::render('conferencia/op_form', [
@@ -25,7 +25,7 @@ final class OpController extends BaseController
 
     public function apiStatus(string $op): void
     {
-        $this->requireRole(['conferencia']);
+        $this->requireRole(['conferencia', 'admin', 'editorpro']);
         header('Content-Type: application/json; charset=utf-8');
 
         $op = strtoupper(trim($op));
@@ -43,7 +43,7 @@ final class OpController extends BaseController
 
     public function insert(): void
     {
-        $this->requireRole(['conferencia']);
+        $this->requireRole(['conferencia', 'admin', 'editorpro']);
 
         $op = strtoupper(trim((string)($_POST['op'] ?? '')));
         $entrada = trim((string)($_POST['entrada'] ?? ''));
@@ -112,7 +112,7 @@ final class OpController extends BaseController
 
     public function consulta(): void
     {
-        $this->requireRole(['conferencia']);
+        $this->requireRole(['conferencia', 'admin', 'editorpro']);
         $q = trim((string)($_GET['q'] ?? ''));
         $rows = (new Op())->search($q !== '' ? $q : null);
         echo View::render('conferencia/op_consulta', ['title' => 'Consultar OP', 'rows' => $rows, 'q' => $q]);

@@ -42,6 +42,15 @@ $nivel = (string)($_SESSION['nivel'] ?? '');
   </div>
 
   <div class="col-12">
+    <a class="card shadow-sm text-decoration-none" href="<?= htmlspecialchars(\Core\Http::url('/conferencia')) ?>">
+      <div class="card-body p-4">
+        <div class="fw-semibold">Conferência</div>
+        <div class="text-secondary small">Cadastro e consulta de OP</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-12">
     <a class="card shadow-sm text-decoration-none" href="<?= htmlspecialchars(\Core\Http::url('/admin/configuracoes')) ?>">
       <div class="card-body p-4">
         <div class="fw-semibold">Configurações</div>

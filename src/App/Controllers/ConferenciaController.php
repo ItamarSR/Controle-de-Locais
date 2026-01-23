@@ -10,7 +10,7 @@ final class ConferenciaController extends BaseController
 {
     public function dashboard(): void
     {
-        $this->requireRole(['conferencia']);
+        $this->requireRole(['conferencia', 'admin', 'editorpro']);
         echo View::render('conferencia/dashboard', ['title' => 'Conferência']);
     }
 }
