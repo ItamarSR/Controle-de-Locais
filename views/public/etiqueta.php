@@ -4,6 +4,7 @@
 use App\Models\Settings;
 
 $pt = 22;
+$ptLocal = 0; // 0 = automático
 $profile = 'bematech';
 $ox = 0.0;
 $oy = 0.0;
@@ -11,6 +12,7 @@ $scale = 1.0;
 try {
   $s = new Settings();
   $pt = (int)($s->get('print_text_pt', (string)$pt) ?? $pt);
+  $ptLocal = (int)($s->get('print_local_pt', (string)$ptLocal) ?? $ptLocal);
   $profile = (string)($s->get('printer_profile', $profile) ?? $profile);
   $ox = (float)($s->get('print_offset_x_mm', (string)$ox) ?? $ox);
   $oy = (float)($s->get('print_offset_y_mm', (string)$oy) ?? $oy);
@@ -19,6 +21,8 @@ try {
 
 if ($pt < 10) $pt = 10;
 if ($pt > 40) $pt = 40;
+if ($ptLocal < 0) $ptLocal = 0;
+if ($ptLocal > 80) $ptLocal = 80;
 if (!in_array($profile, ['bematech', 'elgin'], true)) $profile = 'bematech';
 if ($ox < -10) $ox = -10;
 if ($ox > 10) $ox = 10;
@@ -28,7 +32,7 @@ if ($scale < 0.80) $scale = 0.80;
 if ($scale > 1.20) $scale = 1.20;
 
 // Requisito: LOCAL (nome_local) deve sair grande; demais seguem o tamanho configurado.
-$ptNome = max(28, min(44, $pt + 10));
+$ptNome = $ptLocal > 0 ? $ptLocal : max(28, min(44, $pt + 10));
 $ptMp = $pt;
 $ptSmall = max(8, $pt - 10);
 ?>

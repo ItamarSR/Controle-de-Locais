@@ -100,6 +100,11 @@ final class ConfiguracoesController extends BaseController
             Http::redirect('/admin/configuracoes');
         }
 
+        $localPt = (int)($_POST['print_local_pt'] ?? 0);
+        if ($localPt < 0) $localPt = 0; // 0 = automático
+        if ($localPt > 80) $localPt = 80;
+        $s->set('print_local_pt', (string)$localPt);
+
         $profile = (string)($_POST['printer_profile'] ?? 'bematech');
         if (!in_array($profile, ['bematech', 'elgin'], true)) $profile = 'bematech';
         $s->set('printer_profile', $profile);

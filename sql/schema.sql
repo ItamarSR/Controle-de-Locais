@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS `configuracoes` (
 
 INSERT INTO `configuracoes` (`chave`, `valor`) VALUES
   ('print_text_pt', '22'),
+  ('print_local_pt', '0'),
   ('printer_profile', 'bematech'),
   ('print_offset_x_mm', '0'),
   ('print_offset_y_mm', '0'),

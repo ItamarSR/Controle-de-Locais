@@ -6,6 +6,7 @@ $settings_ok = $settings_ok ?? true;
 $settings_error = $settings_error ?? null;
 
 $printPt = (int)($settings['print_text_pt'] ?? 22);
+$printLocalPt = (int)($settings['print_local_pt'] ?? 0);
 $printerProfile = (string)($settings['printer_profile'] ?? 'bematech');
 $printOffsetX = (float)($settings['print_offset_x_mm'] ?? 0);
 $printOffsetY = (float)($settings['print_offset_y_mm'] ?? 0);
@@ -48,7 +49,12 @@ $logoPath = (string)($settings['logo_path'] ?? '');
           <input type="number" class="form-control" name="print_text_pt" min="10" max="40" required value="<?= (int)$printPt ?>">
           <div class="form-text">Afeta o tamanho do texto da etiqueta na impressora.</div>
         </div>
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold">Tamanho do LOCAL (pt)</label>
+          <input type="number" class="form-control" name="print_local_pt" min="0" max="80" value="<?= (int)$printLocalPt ?>" placeholder="0 = automático">
+          <div class="form-text">0 = automático (LOCAL maior que os demais). Use 28–60 para ajustar.</div>
+        </div>
+        <div class="col-12 col-md-4">
           <div class="alert alert-info mb-0">
             Dica: comece com <b>22</b>. Para corrigir centralização (ex.: Elgin), ajuste X/Y em mm.
           </div>
