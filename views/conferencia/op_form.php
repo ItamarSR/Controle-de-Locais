@@ -61,16 +61,16 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
           <div class="invalid-feedback">Informe um número.</div>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-          <label class="form-label fw-bold small mb-1">SAÍDA</label>
+          <label class="form-label fw-bold small mb-1 d-flex align-items-center justify-content-between gap-2">
+            <span>SAÍDA</span>
+            <span class="form-check form-switch m-0">
+              <input class="form-check-input" type="checkbox" id="saida_pmode">
+              <label class="form-check-label small fw-bold" for="saida_pmode">P1–P10</label>
+            </span>
+          </label>
           <input class="form-control form-control-sm fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
           <div class="invalid-feedback">Informe um número.</div>
           <div class="form-text" id="saida-liquida-txt">SAÍDA LÍQUIDA = SAÍDA - TOTAL EMB</div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <label class="form-label fw-bold small mb-1">QTDE EMB</label>
-          <input class="form-control form-control-sm fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
-          <div class="invalid-feedback">Qtde Emb é obrigatória quando ENTRADA &gt; 100.</div>
-          <div class="form-text">Cálculo: QTDE × 0,050kg</div>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
           <label class="form-label fw-bold small mb-1">COR</label>
@@ -83,9 +83,17 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
           <input class="form-control form-control-sm fw-bold" name="desperdicio" id="desperdicio" readonly value="">
           <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO).</div>
         </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <label class="form-label fw-bold small mb-1">TOTAL EMB (KG)</label>
-          <input class="form-control form-control-sm fw-bold" id="total_emb_kg" readonly value="">
+        <div class="col-12 d-none" id="p-wrap">
+          <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
+            <div class="small fw-bold mb-2">PESAGENS (P1–P10) — SAÍDA = SOMA</div>
+            <div class="row g-2">
+              <?php for ($i = 1; $i <= 10; $i++): ?>
+                <div class="col-6 col-md-4 col-lg-2">
+                  <input class="form-control form-control-sm fw-bold" data-p="1" inputmode="decimal" autocomplete="off" placeholder="P<?= $i ?> (EX: 0,000)">
+                </div>
+              <?php endfor; ?>
+            </div>
+          </div>
         </div>
 
         <div class="col-12 col-md-4 col-lg-3">
@@ -100,6 +108,23 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         <div class="col-12">
           <label class="form-label fw-bold small mb-1">OBS</label>
           <textarea class="form-control form-control-sm upper fw-bold" name="obs" id="obs" rows="2"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
+        </div>
+
+        <div class="col-12 d-none" id="emb-wrap">
+          <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
+            <div class="row g-2 align-items-end">
+              <div class="col-6 col-md-4 col-lg-3">
+                <label class="form-label fw-bold small mb-1">QTDE EMB</label>
+                <input class="form-control form-control-sm fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
+                <div class="invalid-feedback">Qtde Emb é obrigatória quando SAÍDA &gt; 100,000.</div>
+                <div class="form-text">Cálculo: QTDE × 0,060kg</div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-3">
+                <label class="form-label fw-bold small mb-1">TOTAL EMB (KG)</label>
+                <input class="form-control form-control-sm fw-bold" id="total_emb_kg" readonly value="">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -132,7 +157,14 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     const totalEmb = document.getElementById('total_emb_kg');
     const desp = document.getElementById('desperdicio');
     const obs = document.getElementById('obs');
+    const embWrap = document.getElementById('emb-wrap');
+    const pMode = document.getElementById('saida_pmode');
+    const pWrap = document.getElementById('p-wrap');
+    const pInputs = Array.from(document.querySelectorAll('[data-p]'));
     let t = null;
+
+    const EMB_KG = 0.060;
+    const EMB_SHOW_ABOVE = 100.000;
 
     function setWarn(html, type){
       if (warnTop) {
@@ -187,33 +219,37 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       if (!v) { totalEmb.value = ''; return; }
       const q = Number(v);
       if (!Number.isFinite(q)) { totalEmb.value = ''; return; }
-      const total = q * 0.050; // kg
+      const total = q * EMB_KG; // kg
       totalEmb.value = fmt3(total);
     }
 
-    function updateQtdeRequired(){
-      if (!entrada || !qtdeEmb) return;
-      const e = parseBr(entrada.value);
-      if (e !== null && e > 100) {
-        qtdeEmb.required = true;
-      } else {
-        qtdeEmb.required = false;
+    function updateEmbVisibility(){
+      if (!saida || !qtdeEmb || !embWrap) return;
+      const s = parseBr(saida.value);
+      const show = (s !== null && s > EMB_SHOW_ABOVE);
+      embWrap.classList.toggle('d-none', !show);
+      qtdeEmb.required = !!show;
+      if (!show) {
+        qtdeEmb.value = '';
+        if (totalEmb) totalEmb.value = '';
       }
     }
 
     function getTotalEmbKg(){
       const q = qtdeEmb && qtdeEmb.value ? Number(String(qtdeEmb.value).replace(/\D/g,'')) : 0;
-      return (Number.isFinite(q) ? (q * 0.050) : 0);
+      return (Number.isFinite(q) ? (q * EMB_KG) : 0);
     }
 
-    function applySaidaLiquida(){
+    function calcSaidaFromPesagens(){
       if (!saida) return;
-      const s = parseBr(saida.value);
-      if (s === null) return;
-      const totalEmbKg = getTotalEmbKg();
-      if (totalEmbKg <= 0) return;
-      const liquida = s - totalEmbKg;
-      saida.value = fmt3(liquida);
+      let sum = 0;
+      let hasAny = false;
+      pInputs.forEach(inp => {
+        if (!(inp instanceof HTMLInputElement)) return;
+        const n = parseBr(inp.value);
+        if (n !== null) { sum += n; hasAny = true; }
+      });
+      saida.value = hasAny ? fmt3(sum) : '';
     }
 
     function calcDesperdicio(){
@@ -317,17 +353,38 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     // Máscara e cálculo
     [entrada, oleo, saida].forEach(el => {
       if (!el) return;
-      el.addEventListener('input', () => { maskWeight(el); updateQtdeRequired(); calcDesperdicio(); });
-      el.addEventListener('blur', () => { maskWeight(el); updateQtdeRequired(); if (el === saida) applySaidaLiquida(); calcDesperdicio(); });
+      el.addEventListener('input', () => { maskWeight(el); updateEmbVisibility(); calcDesperdicio(); });
+      el.addEventListener('blur', () => { maskWeight(el); updateEmbVisibility(); calcDesperdicio(); });
     });
     if (qtdeEmb) {
-      qtdeEmb.addEventListener('input', () => { updateQtdeRequired(); calcEmbTotal(); calcDesperdicio(); });
-      qtdeEmb.addEventListener('blur', () => { updateQtdeRequired(); calcEmbTotal(); applySaidaLiquida(); calcDesperdicio(); });
+      qtdeEmb.addEventListener('input', () => { calcEmbTotal(); calcDesperdicio(); });
+      qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); calcDesperdicio(); });
+    }
+
+    // Modo pesagens P1..P10
+    if (pMode && pWrap && saida) {
+      function syncMode(){
+        const on = !!pMode.checked;
+        saida.readOnly = on;
+        pWrap.classList.toggle('d-none', !on);
+        if (on) {
+          calcSaidaFromPesagens();
+          updateEmbVisibility();
+          calcDesperdicio();
+        }
+      }
+      pMode.addEventListener('change', syncMode);
+      pInputs.forEach(inp => {
+        if (!(inp instanceof HTMLInputElement)) return;
+        inp.addEventListener('input', () => { maskWeight(inp); calcSaidaFromPesagens(); updateEmbVisibility(); calcDesperdicio(); });
+        inp.addEventListener('blur', () => { maskWeight(inp); calcSaidaFromPesagens(); updateEmbVisibility(); calcDesperdicio(); });
+      });
+      syncMode();
     }
 
     // prefill
     check();
-    updateQtdeRequired();
+    updateEmbVisibility();
     calcDesperdicio();
     calcEmbTotal();
   })();

@@ -11,7 +11,8 @@ use Core\View;
 
 final class OpController extends BaseController
 {
-    private const EMB_PESO_KG = 0.050; // 50g por embalagem (0,050 kg)
+    private const EMB_PESO_KG = 0.060; // 60g por embalagem (0,060 kg)
+    private const EMB_EXIGE_ACIMA_KG = 100.000;
 
     private function parseBrNumber(string $s): ?float
     {
@@ -94,7 +95,7 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
-        // Qtde Emb: obrigatório apenas quando ENTRADA > 100kg
+        // Qtde Emb: obrigatório apenas quando SAÍDA > 100,000kg
         $qtdeEmbInt = null;
         if ($qtdeEmb !== '') {
             if (!ctype_digit($qtdeEmb)) {
@@ -106,8 +107,8 @@ final class OpController extends BaseController
                 $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb inválida.'];
                 Http::redirect('/conferencia/op');
             }
-        } elseif ($vEntrada > 100) {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb é obrigatório quando ENTRADA é maior que 100kg.'];
+        } elseif ($vSaida > self::EMB_EXIGE_ACIMA_KG) {
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Qtde Emb é obrigatório quando SAÍDA é maior que 100,000kg.'];
             Http::redirect('/conferencia/op');
         }
 
