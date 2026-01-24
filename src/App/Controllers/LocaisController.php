@@ -117,8 +117,8 @@ final class LocaisController extends BaseController
             Http::redirect('/admin/locais/novo');
         }
 
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Local cadastrado com sucesso.'];
-        Http::redirect('/admin/locais');
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Local cadastrado com sucesso. Você pode cadastrar outro.'];
+        Http::redirect('/admin/locais/novo');
     }
 
     public function editForm(string $id): void

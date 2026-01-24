@@ -185,8 +185,8 @@ final class OpController extends BaseController
             Http::redirect('/conferencia/op');
         }
 
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso.'];
-        Http::redirect('/conferencia/op/consulta');
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'OP inserida com sucesso. Você pode cadastrar outra.'];
+        Http::redirect('/conferencia/op');
     }
 
     public function consulta(): void

@@ -57,8 +57,8 @@ final class UsuariosController extends BaseController
             Http::redirect('/admin/usuarios/novo');
         }
 
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Usuário criado. Ele deverá trocar a senha no primeiro acesso.'];
-        Http::redirect('/admin/usuarios');
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Usuário criado. Ele deverá trocar a senha no primeiro acesso. Você pode cadastrar outro.'];
+        Http::redirect('/admin/usuarios/novo');
     }
 
     public function editForm(string $id): void
