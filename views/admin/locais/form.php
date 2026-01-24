@@ -25,38 +25,6 @@ $action = $local
 <div class="mx-auto" style="max-width: 1100px;">
 <div class="card shadow-sm">
   <div class="card-body p-3 p-md-4">
-    <?php if (!$local && is_array($slots) && $slots): ?>
-      <div class="mb-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div class="fw-bold">Mapa de Locais (3A–46C)</div>
-          <div class="small text-secondary fw-bold">
-            Verde: &lt; 5 &nbsp;|&nbsp; Laranja: 5–8 &nbsp;|&nbsp; Vermelho: &gt; 8
-          </div>
-        </div>
-        <div class="mt-2 p-2 rounded-3 border" style="background: rgba(255,255,255,.35);">
-          <div class="d-flex flex-wrap gap-2">
-            <?php foreach ($slots as $s): ?>
-              <?php
-                $nivel = (string)($s['nivel'] ?? 'success');
-                $nome = (string)($s['nome'] ?? '');
-                $count = (int)($s['count'] ?? 0);
-                $cls = $nivel === 'danger' ? 'btn-danger' : ($nivel === 'warning' ? 'btn-warning' : 'btn-success');
-              ?>
-              <button
-                type="button"
-                class="btn btn-sm fw-bold <?= htmlspecialchars($cls) ?>"
-                data-slot="<?= htmlspecialchars($nome) ?>"
-                title="<?= htmlspecialchars($nome) ?> (<?= (int)$count ?>)"
-              >
-                <?= htmlspecialchars($nome) ?>
-                <span class="badge text-bg-light ms-1"><?= (int)$count ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-    <?php endif; ?>
-
     <form method="post" action="<?= htmlspecialchars($action) ?>" class="needs-validation" novalidate>
       <?php if (!empty($dup_locais)): ?>
         <div class="alert alert-warning">
@@ -111,6 +79,38 @@ $action = $local
         <a class="btn btn-outline-secondary btn-sm fw-bold px-4" href="<?= htmlspecialchars(\Core\Http::url('/admin/locais')) ?>">Cancelar</a>
       </div>
     </form>
+
+    <?php if (!$local && is_array($slots) && $slots): ?>
+      <div class="mt-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="fw-bold">Mapa de Locais (3A–46C)</div>
+          <div class="small text-secondary fw-bold">
+            Verde: &lt; 5 &nbsp;|&nbsp; Laranja: 5–8 &nbsp;|&nbsp; Vermelho: &gt; 8
+          </div>
+        </div>
+        <div class="mt-2 p-2 rounded-3 border" style="background: rgba(255,255,255,.35);">
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <?php foreach ($slots as $s): ?>
+              <?php
+                $nivel = (string)($s['nivel'] ?? 'success');
+                $nome = (string)($s['nome'] ?? '');
+                $count = (int)($s['count'] ?? 0);
+                $cls = $nivel === 'danger' ? 'btn-danger' : ($nivel === 'warning' ? 'btn-warning' : 'btn-success');
+              ?>
+              <button
+                type="button"
+                class="btn btn-sm fw-bold <?= htmlspecialchars($cls) ?>"
+                data-slot="<?= htmlspecialchars($nome) ?>"
+                title="<?= htmlspecialchars($nome) ?> (<?= (int)$count ?>)"
+              >
+                <?= htmlspecialchars($nome) ?>
+                <span class="badge text-bg-light ms-1"><?= (int)$count ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
 </div>
