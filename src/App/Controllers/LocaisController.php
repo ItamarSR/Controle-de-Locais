@@ -12,6 +12,25 @@ use Core\View;
 
 final class LocaisController extends BaseController
 {
+    private function buildLocaisSlots(): array
+    {
+        $slots = [];
+        for ($i = 3; $i <= 46; $i++) {
+            foreach (['A', 'B', 'C'] as $l) {
+                $slots[] = $i . $l;
+            }
+        }
+
+        $counts = (new Local())->countsByNomeLocal($slots);
+        $out = [];
+        foreach ($slots as $s) {
+            $c = (int)($counts[$s] ?? 0);
+            $nivel = $c > 8 ? 'danger' : ($c >= 5 ? 'warning' : 'success');
+            $out[] = ['nome' => $s, 'count' => $c, 'nivel' => $nivel];
+        }
+        return $out;
+    }
+
     public function apiByCodigo(string $codigo): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
@@ -40,8 +59,9 @@ final class LocaisController extends BaseController
     public function index(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
-        $locais = (new Local())->listAdmin();
-        echo View::render('admin/locais/index', ['title' => 'Locais', 'locais' => $locais]);
+        $q = trim((string)($_GET['q'] ?? ''));
+        $locais = (new Local())->listAdmin($q !== '' ? $q : null);
+        echo View::render('admin/locais/index', ['title' => 'Locais', 'locais' => $locais, 'q' => $q]);
     }
 
     public function createForm(): void
@@ -52,6 +72,7 @@ final class LocaisController extends BaseController
             'title' => 'Novo local',
             'responsavel' => $u,
             'data_auto' => date('d/m/Y H:i'),
+            'slots' => $this->buildLocaisSlots(),
         ]);
     }
 
@@ -86,6 +107,7 @@ final class LocaisController extends BaseController
                 'dup_locais' => $existentes,
                 'responsavel' => $u,
                 'data_auto' => date('d/m/Y H:i'),
+                'slots' => $this->buildLocaisSlots(),
             ]);
             return;
         }

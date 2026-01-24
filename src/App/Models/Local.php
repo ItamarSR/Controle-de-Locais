@@ -17,9 +17,30 @@ final class Local
         $this->pdo = Db::pdo();
     }
 
-    public function listAdmin(): array
+    public function listAdmin(?string $q = null): array
     {
+        $q = $q !== null ? trim($q) : null;
+        $hasFilter = $q !== null && $q !== '';
         try {
+            if ($hasFilter) {
+                $st = $this->pdo->prepare("
+                    SELECT l.id,
+                           l.nome_local,
+                           l.mp_id,
+                           l.data_cadastro,
+                           mp.codigo_mp,
+                           mp.nome_mp,
+                           u.nome AS responsavel_nome
+                    FROM locais l
+                    JOIN materias_primas mp ON mp.id = l.mp_id
+                    LEFT JOIN usuarios u ON u.id = l.responsavel_usuario_id
+                    WHERE (mp.codigo_mp LIKE :q OR mp.nome_mp LIKE :q)
+                    ORDER BY l.nome_local ASC
+                ");
+                $st->execute([':q' => '%' . $q . '%']);
+                return $st->fetchAll();
+            }
+
             $st = $this->pdo->query("
                 SELECT l.id,
                        l.nome_local,
@@ -36,14 +57,52 @@ final class Local
             return $st->fetchAll();
         } catch (PDOException $e) {
             // Compatibilidade: base antiga sem coluna responsavel_usuario_id
+            if ($hasFilter) {
+                $st = $this->pdo->prepare("
+                    SELECT l.id, l.nome_local, l.mp_id, l.data_cadastro, mp.codigo_mp, mp.nome_mp
+                    FROM locais l
+                    JOIN materias_primas mp ON mp.id = l.mp_id
+                    WHERE (mp.codigo_mp LIKE :q OR mp.nome_mp LIKE :q)
+                    ORDER BY l.nome_local ASC
+                ");
+                $st->execute([':q' => '%' . $q . '%']);
+                return $st->fetchAll();
+            }
+
             $st = $this->pdo->query("
-                SELECT l.id, l.nome_local, l.mp_id, l.data_cadastro, mp.codigo_mp, mp.nome_mp
-                FROM locais l
-                JOIN materias_primas mp ON mp.id = l.mp_id
-                ORDER BY l.nome_local ASC
-            ");
+                    SELECT l.id, l.nome_local, l.mp_id, l.data_cadastro, mp.codigo_mp, mp.nome_mp
+                    FROM locais l
+                    JOIN materias_primas mp ON mp.id = l.mp_id
+                    ORDER BY l.nome_local ASC
+                ");
             return $st->fetchAll();
         }
+    }
+
+    /**
+     * Retorna contagens por nome_local para uma lista de locais.
+     * Saída: ['3A' => 2, '3B' => 0, ...]
+     */
+    public function countsByNomeLocal(array $nomes): array
+    {
+        $nomes = array_values(array_filter(array_map('strval', $nomes), fn($s) => trim($s) !== ''));
+        if (!$nomes) return [];
+
+        $placeholders = implode(',', array_fill(0, count($nomes), '?'));
+        $st = $this->pdo->prepare("
+            SELECT nome_local, COUNT(*) AS c
+            FROM locais
+            WHERE nome_local IN ($placeholders)
+            GROUP BY nome_local
+        ");
+        $st->execute($nomes);
+        $rows = $st->fetchAll();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $out[(string)$r['nome_local']] = (int)$r['c'];
+        }
+        return $out;
     }
 
     public function listPublic(): array
