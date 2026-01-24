@@ -42,17 +42,17 @@ $action = $local
       <div class="row g-2">
         <div class="col-12 col-md-4 col-lg-3">
           <label class="form-label fw-bold small mb-1">Código</label>
-          <input class="form-control form-control-sm" name="codigo_mp" id="codigo_mp" required maxlength="50" value="<?= htmlspecialchars($codigo_mp) ?>" placeholder="Ex: 12345">
+          <input class="form-control form-control-sm upper" name="codigo_mp" id="codigo_mp" required maxlength="50" value="<?= htmlspecialchars($codigo_mp) ?>" placeholder="Ex: 12345">
           <div class="invalid-feedback">Informe o código.</div>
         </div>
         <div class="col-12 col-md-8 col-lg-6">
           <label class="form-label fw-bold small mb-1">Descrição</label>
-          <input class="form-control form-control-sm" name="descricao_mp" id="descricao_mp" value="<?= htmlspecialchars($descricao_mp) ?>" readonly>
+          <input class="form-control form-control-sm upper" name="descricao_mp" id="descricao_mp" value="<?= htmlspecialchars($descricao_mp) ?>" readonly>
           <div class="form-text">Preenchido automaticamente pela MP (nome_mp) a partir do Código.</div>
         </div>
         <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label fw-bold small mb-1">Local</label>
-          <input class="form-control form-control-sm" name="nome_local" id="nome_local" required maxlength="255" value="<?= htmlspecialchars($nome_local) ?>" placeholder="Ex: 3A">
+          <input class="form-control form-control-sm upper" name="nome_local" id="nome_local" required maxlength="255" value="<?= htmlspecialchars($nome_local) ?>" placeholder="Ex: 3A">
           <div class="invalid-feedback">Informe o nome do local.</div>
         </div>
       </div>

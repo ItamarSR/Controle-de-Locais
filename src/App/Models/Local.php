@@ -34,10 +34,11 @@ final class Local
                     FROM locais l
                     JOIN materias_primas mp ON mp.id = l.mp_id
                     LEFT JOIN usuarios u ON u.id = l.responsavel_usuario_id
-                    WHERE (mp.codigo_mp LIKE :q OR mp.nome_mp LIKE :q)
+                    WHERE (mp.codigo_mp LIKE :q1 OR mp.nome_mp LIKE :q2)
                     ORDER BY l.nome_local ASC
                 ");
-                $st->execute([':q' => '%' . $q . '%']);
+                $like = '%' . $q . '%';
+                $st->execute([':q1' => $like, ':q2' => $like]);
                 return $st->fetchAll();
             }
 
@@ -62,10 +63,11 @@ final class Local
                     SELECT l.id, l.nome_local, l.mp_id, l.data_cadastro, mp.codigo_mp, mp.nome_mp
                     FROM locais l
                     JOIN materias_primas mp ON mp.id = l.mp_id
-                    WHERE (mp.codigo_mp LIKE :q OR mp.nome_mp LIKE :q)
+                    WHERE (mp.codigo_mp LIKE :q1 OR mp.nome_mp LIKE :q2)
                     ORDER BY l.nome_local ASC
                 ");
-                $st->execute([':q' => '%' . $q . '%']);
+                $like = '%' . $q . '%';
+                $st->execute([':q1' => $like, ':q2' => $like]);
                 return $st->fetchAll();
             }
 

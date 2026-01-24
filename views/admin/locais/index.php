@@ -11,7 +11,7 @@ $q = (string)($q ?? '');
   </div>
   <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
     <form method="get" action="<?= htmlspecialchars(\Core\Http::url('/admin/locais')) ?>" class="d-flex gap-2">
-      <input class="form-control form-control-sm" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Filtro: código ou descrição">
+      <input class="form-control form-control-sm upper" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Filtro: código ou descrição">
       <button class="btn btn-outline-secondary btn-sm fw-bold" type="submit">Filtrar</button>
       <?php if ($q !== ''): ?>
         <a class="btn btn-outline-secondary btn-sm fw-bold" href="<?= htmlspecialchars(\Core\Http::url('/admin/locais')) ?>">Limpar</a>
