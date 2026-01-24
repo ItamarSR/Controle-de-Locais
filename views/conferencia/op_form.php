@@ -65,7 +65,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
             <span>SAÍDA</span>
             <span class="form-check form-switch m-0">
               <input class="form-check-input" type="checkbox" id="saida_pmode">
-              <label class="form-check-label small fw-bold" for="saida_pmode">P1–P10</label>
+              <label class="form-check-label small fw-bold" for="saida_pmode">P1–P12</label>
             </span>
           </label>
           <input class="form-control form-control-sm fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
@@ -85,9 +85,9 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         </div>
         <div class="col-12 d-none" id="p-wrap">
           <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
-            <div class="small fw-bold mb-2">PESAGENS (P1–P10) — SAÍDA = SOMA</div>
+            <div class="small fw-bold mb-2">PESAGENS (P1–P12) — SAÍDA = SOMA</div>
             <div class="row g-2">
-              <?php for ($i = 1; $i <= 10; $i++): ?>
+              <?php for ($i = 1; $i <= 12; $i++): ?>
                 <div class="col-6 col-md-4 col-lg-2">
                   <input class="form-control form-control-sm fw-bold" data-p="1" inputmode="decimal" autocomplete="off" placeholder="P<?= $i ?> (EX: 0,000)">
                 </div>
@@ -112,16 +112,17 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
 
         <div class="col-12 d-none" id="emb-wrap">
           <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
-            <div class="row g-2 align-items-end">
-              <div class="col-6 col-md-4 col-lg-3">
+            <div class="row g-2 align-items-start">
+              <div class="col-12 col-md-6">
                 <label class="form-label fw-bold small mb-1">QTDE EMB</label>
                 <input class="form-control form-control-sm fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
                 <div class="invalid-feedback">Qtde Emb é obrigatória quando SAÍDA &gt; 100,000.</div>
                 <div class="form-text">Cálculo: QTDE × 0,060kg</div>
               </div>
-              <div class="col-6 col-md-4 col-lg-3">
+              <div class="col-12 col-md-6">
                 <label class="form-label fw-bold small mb-1">TOTAL EMB (KG)</label>
                 <input class="form-control form-control-sm fw-bold" id="total_emb_kg" readonly value="">
+                <div class="form-text">&nbsp;</div>
               </div>
             </div>
           </div>
