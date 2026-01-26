@@ -7,7 +7,19 @@ $dbPort = \Core\Env::getString('DB_PORT', '3306') ?? '3306';
 $dbName = \Core\Env::getString('DB_NAME', 'sistemas_almox') ?? 'sistemas_almox';
 $dbUser = \Core\Env::getString('DB_USER', 'sistemas_master') ?? 'sistemas_master';
 $dbPass = \Core\Env::getString('DB_PASS', '3yOQZ;v2j5O8.e') ?? '';
-$dbServer = $dbHost . ($dbPort !== '' ? (':' . $dbPort) : '');
+
+// Sanitiza host (remove https://, path e porta de cPanel por engano)
+$hostSan = $dbHost;
+if (preg_match('#^[a-zA-Z][a-zA-Z0-9+.-]*://#', $hostSan)) {
+  $u = parse_url($hostSan);
+  if (is_array($u) && !empty($u['host'])) $hostSan = (string)$u['host'];
+}
+// remove path e porta caso ainda exista (ex.: domain:2083/cpanel)
+$hostSan = preg_replace('#/.*$#', '', (string)$hostSan);
+$hostSan = preg_replace('#:\d+$#', '', (string)$hostSan);
+
+$dbServer = $hostSan . ($dbPort !== '' ? (':' . $dbPort) : '');
+$pbiConnName = $dbServer . ';' . $dbName; // formato do Power BI (Gateway): servidor:porta;banco
 ?>
 
 <div class="row g-3">
@@ -77,6 +89,14 @@ $dbServer = $dbHost . ($dbPort !== '' ? (':' . $dbPort) : '');
         </div>
 
         <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label small fw-bold mb-1">Nome da conexão (Power BI / Gateway)</label>
+            <input class="form-control form-control-sm fw-bold" readonly value="<?= htmlspecialchars($pbiConnName) ?>">
+            <div class="form-text">
+              Use exatamente assim no campo <b>“Nome da conexão”</b>: <b>servidor:porta;banco</b>.
+              Não use <b>https://</b> e não use a porta do cPanel (ex.: <b>2083</b>).
+            </div>
+          </div>
           <div class="col-12 col-md-6">
             <label class="form-label small fw-bold mb-1">Servidor</label>
             <input class="form-control form-control-sm fw-bold" readonly value="<?= htmlspecialchars($dbServer) ?>">
@@ -99,7 +119,7 @@ $dbServer = $dbHost . ($dbPort !== '' ? (':' . $dbPort) : '');
         </div>
 
         <div class="form-text mt-2">
-          No Power BI Desktop: <b>Obter Dados</b> → <b>Banco de dados MySQL</b> → Servidor = <b><?= htmlspecialchars($dbServer) ?></b>, Banco = <b><?= htmlspecialchars($dbName) ?></b>.
+          Power BI Desktop: <b>Obter Dados</b> → <b>Banco de dados MySQL</b> → Servidor = <b><?= htmlspecialchars($dbServer) ?></b>, Banco = <b><?= htmlspecialchars($dbName) ?></b>.
         </div>
       </div>
     </div>
