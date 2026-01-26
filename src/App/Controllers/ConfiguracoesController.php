@@ -123,16 +123,33 @@ final class ConfiguracoesController extends BaseController
         if ($scale > 1.20) $scale = 1.20;
         $s->set('print_scale', (string)$scale);
 
-        // Dash Produção (metas)
-        $metaOp = (int)($_POST['dash_meta_op_step'] ?? 4);
-        if ($metaOp < 0) $metaOp = 0;
-        if ($metaOp > 9999) $metaOp = 9999;
-        $s->set('dash_meta_op_step', (string)$metaOp);
+        // Dash Produção (metas diárias)
+        if (array_key_exists('dash_meta_op_daily', $_POST)) {
+            $metaOpDaily = (int)($_POST['dash_meta_op_daily'] ?? 0);
+            if ($metaOpDaily < 0) $metaOpDaily = 0;
+            if ($metaOpDaily > 999999) $metaOpDaily = 999999;
+            $s->set('dash_meta_op_daily', (string)$metaOpDaily);
+        }
+        if (array_key_exists('dash_meta_kg_daily', $_POST)) {
+            $metaKgDaily = (float)($_POST['dash_meta_kg_daily'] ?? 0);
+            if ($metaKgDaily < 0) $metaKgDaily = 0;
+            if ($metaKgDaily > 9999999) $metaKgDaily = 9999999;
+            $s->set('dash_meta_kg_daily', (string)$metaKgDaily);
+        }
 
-        $metaKg = (float)($_POST['dash_meta_kg_step'] ?? 500);
-        if ($metaKg < 0) $metaKg = 0;
-        if ($metaKg > 999999) $metaKg = 999999;
-        $s->set('dash_meta_kg_step', (string)$metaKg);
+        // Compatibilidade: se ainda existir formulário antigo, mantém suporte
+        if (array_key_exists('dash_meta_op_step', $_POST)) {
+            $metaOp = (int)($_POST['dash_meta_op_step'] ?? 4);
+            if ($metaOp < 0) $metaOp = 0;
+            if ($metaOp > 9999) $metaOp = 9999;
+            $s->set('dash_meta_op_step', (string)$metaOp);
+        }
+        if (array_key_exists('dash_meta_kg_step', $_POST)) {
+            $metaKg = (float)($_POST['dash_meta_kg_step'] ?? 500);
+            if ($metaKg < 0) $metaKg = 0;
+            if ($metaKg > 999999) $metaKg = 999999;
+            $s->set('dash_meta_kg_step', (string)$metaKg);
+        }
 
         // Tema (somente Admin)
         if ($nivel === 'admin') {

@@ -91,6 +91,8 @@ INSERT INTO `configuracoes` (`chave`, `valor`) VALUES
   ('print_scale', '1'),
   ('dash_meta_op_step', '4'),
   ('dash_meta_kg_step', '500'),
+  ('dash_meta_op_daily', '96'),
+  ('dash_meta_kg_daily', '12000'),
   ('theme_page', '#f6f7fb'),
   ('theme_header', '#ffffff'),
   ('theme_footer', '#ffffff'),

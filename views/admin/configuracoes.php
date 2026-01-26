@@ -11,8 +11,8 @@ $printerProfile = (string)($settings['printer_profile'] ?? 'bematech');
 $printOffsetX = (float)($settings['print_offset_x_mm'] ?? 0);
 $printOffsetY = (float)($settings['print_offset_y_mm'] ?? 0);
 $printScale = (float)($settings['print_scale'] ?? 1);
-$dashMetaOpStep = (int)($settings['dash_meta_op_step'] ?? 4);
-$dashMetaKgStep = (float)($settings['dash_meta_kg_step'] ?? 500);
+$dashMetaOpDaily = (int)($settings['dash_meta_op_daily'] ?? 96);
+$dashMetaKgDaily = (float)($settings['dash_meta_kg_daily'] ?? 12000);
 $themePage = (string)($settings['theme_page'] ?? '#f6f7fb');
 $themeHeader = (string)($settings['theme_header'] ?? '#ffffff');
 $themeFooter = (string)($settings['theme_footer'] ?? '#ffffff');
@@ -94,17 +94,17 @@ $logoPath = (string)($settings['logo_path'] ?? '');
 
       <hr class="my-4">
 
-      <h2 class="h6 fw-bold mb-3">Dash Produção (metas)</h2>
+      <h2 class="h6 fw-bold mb-3">Dash Produção (metas diárias)</h2>
       <div class="row g-3">
         <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">Meta OP por hora</label>
-          <input type="number" class="form-control" name="dash_meta_op_step" min="0" max="9999" value="<?= (int)$dashMetaOpStep ?>">
-          <div class="form-text">Usada para calcular a coluna META OP (cumulativa por hora).</div>
+          <label class="form-label fw-bold">Meta diária OP</label>
+          <input type="number" class="form-control" name="dash_meta_op_daily" min="0" max="999999" value="<?= (int)$dashMetaOpDaily ?>">
+          <div class="form-text">Comparada com TOTAL OPS no Dash (público).</div>
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label fw-bold">Meta KG por hora</label>
-          <input type="number" step="0.1" class="form-control" name="dash_meta_kg_step" min="0" max="999999" value="<?= htmlspecialchars((string)$dashMetaKgStep) ?>">
-          <div class="form-text">Usada para calcular a coluna META KG (cumulativa por hora).</div>
+          <label class="form-label fw-bold">Meta diária KG</label>
+          <input type="number" step="0.1" class="form-control" name="dash_meta_kg_daily" min="0" max="9999999" value="<?= htmlspecialchars((string)$dashMetaKgDaily) ?>">
+          <div class="form-text">Comparada com TOTAL KG no Dash (público).</div>
         </div>
       </div>
     </div>

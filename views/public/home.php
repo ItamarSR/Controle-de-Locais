@@ -182,12 +182,18 @@ try {
                   </div>
                 </div>
                 <div class="dash-meta">
-                  <div class="dash-meta-title">META OP</div>
-                  <input class="form-control form-control-sm fw-bold" id="dash-meta-op" type="number" min="0" value="4">
+                  <div class="dash-meta-title d-flex align-items-center justify-content-between">
+                    <span>META OP</span>
+                    <span id="dash-meta-op-ico" class="fw-bold"></span>
+                  </div>
+                  <input class="form-control form-control-sm fw-bold" id="dash-meta-op" type="number" readonly>
                 </div>
                 <div class="dash-meta">
-                  <div class="dash-meta-title">META KG</div>
-                  <input class="form-control form-control-sm fw-bold" id="dash-meta-kg" type="number" min="0" step="0.1" value="500">
+                  <div class="dash-meta-title d-flex align-items-center justify-content-between">
+                    <span>META KG</span>
+                    <span id="dash-meta-kg-ico" class="fw-bold"></span>
+                  </div>
+                  <input class="form-control form-control-sm fw-bold" id="dash-meta-kg" type="number" readonly>
                 </div>
               </div>
 
@@ -230,6 +236,8 @@ try {
     const totKg = document.getElementById('dash-total-kg');
     const metaOpEl = document.getElementById('dash-meta-op');
     const metaKgEl = document.getElementById('dash-meta-kg');
+    const metaOpIco = document.getElementById('dash-meta-op-ico');
+    const metaKgIco = document.getElementById('dash-meta-kg-ico');
     const prev = document.getElementById('dash-prev');
     const next = document.getElementById('dash-next');
     if (!dateEl || !btn || !rowsEl || !metaOpEl || !metaKgEl) return;
@@ -257,30 +265,38 @@ try {
         const data = await res.json();
         if (!data || !data.ok) throw new Error('Falha');
 
-        totOps.textContent = String(data.total_ops ?? 0);
-        totKg.textContent = fmtKg(data.total_kg ?? 0);
+        const totalOps = Number(data.total_ops ?? 0);
+        const totalKg = Number(data.total_kg ?? 0);
+        totOps.textContent = String(totalOps);
+        totKg.textContent = fmtKg(totalKg);
         st.textContent = 'Atualizado.';
 
-        // Defaults metas vindos do servidor (configurações)
-        if (metaOpEl.value === '' || metaOpEl.dataset.inited !== '1') {
-          metaOpEl.value = String(data.meta_op_step ?? 4);
-          metaOpEl.dataset.inited = '1';
-        }
-        if (metaKgEl.value === '' || metaKgEl.dataset.inited !== '1') {
-          metaKgEl.value = String(data.meta_kg_step ?? 500);
-          metaKgEl.dataset.inited = '1';
-        }
+        // Metas diárias vindas do servidor (EditorPro/Admin)
+        const metaOpDaily = Number(data.meta_op_daily ?? 0);
+        const metaKgDaily = Number(data.meta_kg_daily ?? 0);
+        metaOpEl.value = metaOpDaily > 0 ? String(metaOpDaily) : '';
+        metaKgEl.value = metaKgDaily > 0 ? String(metaKgDaily) : '';
 
-        const metaOpStep = Number(metaOpEl.value || 0);
-        const metaKgStep = Number(metaKgEl.value || 0);
+        function iconFor(total, meta){
+          if (!(meta > 0)) return '';
+          if (total < meta) return '☹';
+          if (total === meta) return '🙂';
+          return '👍';
+        }
+        if (metaOpIco) metaOpIco.textContent = iconFor(totalOps, metaOpDaily);
+        if (metaKgIco) metaKgIco.textContent = iconFor(totalKg, metaKgDaily);
+
+        // Meta por hora: distribui a meta diária em 24h (cumulativa)
+        const metaOpStep = metaOpDaily > 0 ? (metaOpDaily / 24) : 0;
+        const metaKgStep = metaKgDaily > 0 ? (metaKgDaily / 24) : 0;
 
         const hours = Array.isArray(data.hours) ? data.hours : [];
         rowsEl.innerHTML = hours.map(h => {
           const hour = Number(h.hour || 0);
           const ops = Number(h.ops || 0);
           const kg = Number(h.kg || 0);
-          const metaOp = Math.max(0, metaOpStep) * (hour + 1);
-          const metaKg = Math.max(0, metaKgStep) * (hour + 1);
+          const metaOp = metaOpStep > 0 ? Math.round(metaOpStep * (hour + 1)) : 0;
+          const metaKg = metaKgStep > 0 ? (metaKgStep * (hour + 1)) : 0;
 
           const okOps = metaOp > 0 ? (ops >= metaOp) : null;
           const okKg = metaKg > 0 ? (kg >= metaKg) : null;
@@ -307,8 +323,6 @@ try {
     dateEl.addEventListener('change', load);
     if (prev) prev.addEventListener('click', () => { dateEl.value = addDays(dateEl.value, -1); load(); });
     if (next) next.addEventListener('click', () => { dateEl.value = addDays(dateEl.value, +1); load(); });
-    metaOpEl.addEventListener('change', load);
-    metaKgEl.addEventListener('change', load);
 
     // carrega ao abrir o modal (primeira vez)
     const modalEl = document.getElementById('dashModal');

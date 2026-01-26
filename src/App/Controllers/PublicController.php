@@ -79,17 +79,27 @@ final class PublicController
 
         $stats = (new Op())->statsByHour($date);
 
-        // Metas (configuráveis)
-        $metaOpStep = 4;
-        $metaKgStep = 500.0;
+        // Metas (configuráveis) - diárias
+        $metaOpDaily = 96;
+        $metaKgDaily = 12000.0;
         try {
             $set = new Settings();
-            $metaOpStep = (int)($set->get('dash_meta_op_step', (string)$metaOpStep) ?? $metaOpStep);
-            $metaKgStep = (float)($set->get('dash_meta_kg_step', (string)$metaKgStep) ?? $metaKgStep);
+            $metaOpDaily = (int)($set->get('dash_meta_op_daily', (string)$metaOpDaily) ?? $metaOpDaily);
+            $metaKgDaily = (float)($set->get('dash_meta_kg_daily', (string)$metaKgDaily) ?? $metaKgDaily);
+
+            // fallback de compatibilidade (bases antigas): step * 24
+            if ($metaOpDaily <= 0) {
+                $step = (int)($set->get('dash_meta_op_step', '4') ?? 4);
+                $metaOpDaily = max(0, $step) * 24;
+            }
+            if ($metaKgDaily <= 0) {
+                $stepKg = (float)($set->get('dash_meta_kg_step', '500') ?? 500);
+                $metaKgDaily = max(0.0, $stepKg) * 24.0;
+            }
         } catch (\Throwable $e) {
         }
-        if ($metaOpStep < 0) $metaOpStep = 0;
-        if ($metaKgStep < 0) $metaKgStep = 0.0;
+        if ($metaOpDaily < 0) $metaOpDaily = 0;
+        if ($metaKgDaily < 0) $metaKgDaily = 0.0;
 
         $totalOps = 0;
         $totalKg = 0.0;
@@ -103,8 +113,8 @@ final class PublicController
             'date' => $date,
             'total_ops' => $totalOps,
             'total_kg' => round($totalKg, 3),
-            'meta_op_step' => $metaOpStep,
-            'meta_kg_step' => round($metaKgStep, 3),
+            'meta_op_daily' => $metaOpDaily,
+            'meta_kg_daily' => round($metaKgDaily, 3),
             'hours' => array_map(function (array $h): array {
                 $hh = (int)$h['hour'];
                 return [
