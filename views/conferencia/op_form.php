@@ -82,7 +82,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         <div class="col-6 col-md-4 col-lg-3">
           <label class="form-label fw-bold small mb-1">DESPERDÍCIO</label>
           <input class="form-control form-control-sm fw-bold" name="desperdicio" id="desperdicio" readonly value="">
-          <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO).</div>
+          <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO) - TOTAL EMB.</div>
         </div>
         <div class="col-12 d-none" id="p-wrap">
           <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
@@ -249,7 +249,11 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     function setSaidaGrossFromView(){
       if (!saidaHidden) return;
       const v = parseBr(saida.value);
-      saidaHidden.value = v === null ? '' : fmt3(v);
+      if (v === null) { saidaHidden.value = ''; return; }
+      const te = getTotalEmbKg();
+      // Se a SAÍDA na tela já está líquida, converte para bruto (líquida + emb)
+      const gross = (saida.dataset.netApplied === '1' && te > 0) ? (v + te) : v;
+      saidaHidden.value = fmt3(gross);
     }
 
     function getSaidaGross(){
@@ -281,6 +285,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       const te = getTotalEmbKg();
       // Campo SAÍDA deve diminuir o TOTAL EMB (KG)
       saida.value = fmt3(g - te);
+      saida.dataset.netApplied = te > 0 ? '1' : '0';
     }
 
     function calcSaidaFromPesagens(){
@@ -400,6 +405,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       el.addEventListener('input', () => {
         maskWeight(el);
         if (el === saida) setSaidaGrossFromView();
+        if (el === saida) saida.dataset.netApplied = '0';
         updateEmbVisibility();
         calcDesperdicio();
       });
