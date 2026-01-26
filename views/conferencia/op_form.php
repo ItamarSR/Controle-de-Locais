@@ -68,7 +68,8 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
               <label class="form-check-label small fw-bold" for="saida_pmode">P1–P12</label>
             </span>
           </label>
-          <input class="form-control form-control-sm fw-bold" name="saida" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
+          <input type="hidden" name="saida" id="saida_hidden" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>">
+          <input class="form-control form-control-sm fw-bold" name="saida_view" id="saida" required inputmode="decimal" autocomplete="off" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>" placeholder="EX: 33,000">
           <div class="invalid-feedback">Informe um número.</div>
           <div class="form-text" id="saida-liquida-txt">SAÍDA LÍQUIDA = SAÍDA - TOTAL EMB</div>
         </div>
@@ -154,6 +155,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     const entrada = document.getElementById('entrada');
     const oleo = document.getElementById('oleo');
     const saida = document.getElementById('saida');
+    const saidaHidden = document.getElementById('saida_hidden');
     const qtdeEmb = document.getElementById('qtde_emb');
     const totalEmb = document.getElementById('total_emb_kg');
     const desp = document.getElementById('desperdicio');
@@ -226,19 +228,59 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
 
     function updateEmbVisibility(){
       if (!saida || !qtdeEmb || !embWrap) return;
-      const s = parseBr(saida.value);
-      const show = (s !== null && s > EMB_SHOW_ABOVE);
+      // visibilidade baseada no BRUTO (antes de descontar emb)
+      const g = getSaidaGross();
+      const show = (g !== null && g > EMB_SHOW_ABOVE);
       embWrap.classList.toggle('d-none', !show);
       qtdeEmb.required = !!show;
       if (!show) {
         qtdeEmb.value = '';
         if (totalEmb) totalEmb.value = '';
+        // volta a exibir o bruto (sem desconto)
+        if (saidaHidden) saida.value = String(saidaHidden.value || '');
       }
     }
 
     function getTotalEmbKg(){
       const q = qtdeEmb && qtdeEmb.value ? Number(String(qtdeEmb.value).replace(/\D/g,'')) : 0;
       return (Number.isFinite(q) ? (q * EMB_KG) : 0);
+    }
+
+    function setSaidaGrossFromView(){
+      if (!saidaHidden) return;
+      const v = parseBr(saida.value);
+      saidaHidden.value = v === null ? '' : fmt3(v);
+    }
+
+    function getSaidaGross(){
+      // Em modo P, o "bruto" é soma das pesagens
+      if (pMode && pMode.checked) {
+        let sum = 0;
+        let hasAny = false;
+        pInputs.forEach(inp => {
+          if (!(inp instanceof HTMLInputElement)) return;
+          const n = parseBr(inp.value);
+          if (n !== null) { sum += n; hasAny = true; }
+        });
+        return hasAny ? sum : null;
+      }
+
+      if (saidaHidden && String(saidaHidden.value || '').trim() !== '') {
+        const g = parseBr(saidaHidden.value);
+        if (g !== null) return g;
+      }
+
+      const v = parseBr(saida.value);
+      return v;
+    }
+
+    function applySaidaLiquidaFromGross(){
+      if (!saida) return;
+      const g = getSaidaGross();
+      if (g === null) return;
+      const te = getTotalEmbKg();
+      // Campo SAÍDA deve diminuir o TOTAL EMB (KG)
+      saida.value = fmt3(g - te);
     }
 
     function calcSaidaFromPesagens(){
@@ -250,25 +292,26 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         const n = parseBr(inp.value);
         if (n !== null) { sum += n; hasAny = true; }
       });
-      saida.value = hasAny ? fmt3(sum) : '';
+      if (saidaHidden) saidaHidden.value = hasAny ? fmt3(sum) : '';
+      // mostra líquido na SAÍDA
+      if (hasAny) applySaidaLiquidaFromGross(); else saida.value = '';
     }
 
     function calcDesperdicio(){
       if (!entrada || !oleo || !saida || !desp) return;
       const e = parseBr(entrada.value);
       const o = parseBr(oleo.value);
-      const s = parseBr(saida.value);
+      const g = getSaidaGross();
       clearWarnDesp();
       desp.classList.remove('border-danger','border-success');
       desp.classList.remove('text-danger','text-success');
       if (obs) obs.required = false;
-      if (e === null || o === null || s === null) {
+      if (e === null || o === null || g === null) {
         desp.value = '';
         return;
       }
-      // Saída líquida descontando embalagens (se informado)
       const totalEmbKg = getTotalEmbKg();
-      const saidaLiquida = s - totalEmbKg;
+      const saidaLiquida = g - totalEmbKg;
 
       const sum = e + o;
       const d = (saidaLiquida - sum);
@@ -354,15 +397,29 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     // Máscara e cálculo
     [entrada, oleo, saida].forEach(el => {
       if (!el) return;
-      el.addEventListener('input', () => { maskWeight(el); updateEmbVisibility(); calcDesperdicio(); });
-      el.addEventListener('blur', () => { maskWeight(el); updateEmbVisibility(); calcDesperdicio(); });
+      el.addEventListener('input', () => {
+        maskWeight(el);
+        if (el === saida) setSaidaGrossFromView();
+        updateEmbVisibility();
+        calcDesperdicio();
+      });
+      el.addEventListener('blur', () => {
+        maskWeight(el);
+        if (el === saida) {
+          setSaidaGrossFromView();
+          calcEmbTotal();
+          updateEmbVisibility();
+          applySaidaLiquidaFromGross();
+        }
+        calcDesperdicio();
+      });
     });
     if (qtdeEmb) {
-      qtdeEmb.addEventListener('input', () => { calcEmbTotal(); calcDesperdicio(); });
-      qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); calcDesperdicio(); });
+      qtdeEmb.addEventListener('input', () => { calcEmbTotal(); applySaidaLiquidaFromGross(); calcDesperdicio(); });
+      qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); applySaidaLiquidaFromGross(); calcDesperdicio(); });
     }
 
-    // Modo pesagens P1..P10
+    // Modo pesagens P1..P12
     if (pMode && pWrap && saida) {
       function syncMode(){
         const on = !!pMode.checked;
@@ -372,6 +429,9 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
           calcSaidaFromPesagens();
           updateEmbVisibility();
           calcDesperdicio();
+        } else {
+          // volta para modo manual: SAÍDA mostra o bruto digitado (até calcular emb)
+          if (saidaHidden) saida.value = String(saidaHidden.value || '');
         }
       }
       pMode.addEventListener('change', syncMode);
@@ -385,9 +445,12 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
 
     // prefill
     check();
-    updateEmbVisibility();
-    calcDesperdicio();
+    // inicializa bruto a partir do valor atual da SAÍDA (caso exista)
+    setSaidaGrossFromView();
     calcEmbTotal();
+    updateEmbVisibility();
+    applySaidaLiquidaFromGross();
+    calcDesperdicio();
   })();
 </script>
 
