@@ -119,8 +119,8 @@ final class OpController extends BaseController
         $vSaidaLiquida = $vSaida - $totalEmbKgNum;
 
         $soma = $vEntrada + $vOleo;
-        // Desperdício: SAÍDA - (ENTRADA + ÓLEO) (pode ser negativo)
-        $desperdicio = $vSaidaLiquida - $soma;
+        // Desperdício: NÃO desconta TOTAL EMB (usa SAÍDA BRUTA)
+        $desperdicio = $vSaida - $soma;
         $despStr = $this->formatBrNumber($desperdicio);
 
         // Regra: se |desperdício| > 0,400, OBS obrigatório

@@ -82,7 +82,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         <div class="col-6 col-md-4 col-lg-3">
           <label class="form-label fw-bold small mb-1">DESPERDÍCIO</label>
           <input class="form-control form-control-sm fw-bold" name="desperdicio" id="desperdicio" readonly value="">
-          <div class="form-text">Calculado: SAÍDA - (ENTRADA + ÓLEO).</div>
+          <div class="form-text">Calculado: SAÍDA BRUTA - (ENTRADA + ÓLEO).</div>
         </div>
         <div class="col-12 d-none" id="p-wrap">
           <div class="border rounded-3 p-2" style="background: rgba(255,255,255,.35);">
@@ -306,19 +306,19 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       if (!entrada || !oleo || !saida || !desp) return;
       const e = parseBr(entrada.value);
       const o = parseBr(oleo.value);
-      // SAÍDA exibida já é líquida (bruta - total emb)
-      const sNet = parseBr(saida.value);
+      // DESPERDÍCIO NÃO desconta TOTAL EMB: usa SAÍDA BRUTA
+      const g = getSaidaGross();
       clearWarnDesp();
       desp.classList.remove('border-danger','border-success');
       desp.classList.remove('text-danger','text-success');
       if (obs) obs.required = false;
-      if (e === null || o === null || sNet === null) {
+      if (e === null || o === null || g === null) {
         desp.value = '';
         return;
       }
 
       const sum = e + o;
-      const d = (sNet - sum);
+      const d = (g - sum);
       desp.value = fmt3(d);
       if (d < -0.400) {
         desp.classList.add('border-danger','text-danger');
