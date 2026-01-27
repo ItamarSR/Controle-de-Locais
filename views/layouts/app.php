@@ -45,6 +45,7 @@ try {
       <div id="nav" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto gap-2">
           <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/')) ?>">Público</a></li>
+          <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(Http::url('/powerbi')) ?>">PowerBI</a></li>
           <?php if (!empty($_SESSION['user_id'])): ?>
             <?php $nivel = (string)($_SESSION['nivel'] ?? ''); ?>
             <?php if (in_array($nivel, ['conferencia', 'admin', 'editorpro'], true)): ?>

@@ -17,6 +17,53 @@ final class PublicController
         echo View::render('public/home', ['title' => 'Consulta pública']);
     }
 
+    public function powerbi(): void
+    {
+        $page = (int)($_GET['page'] ?? 1);
+        $per = (int)($_GET['per'] ?? 200);
+        if ($page < 1) $page = 1;
+        if ($per < 50) $per = 50;
+        if ($per > 1000) $per = 1000;
+        $offset = ($page - 1) * $per;
+
+        $opModel = new Op();
+        try {
+            $total = $opModel->countAll();
+            $rows = $opModel->listPaged($offset, $per);
+        } catch (\Throwable $e) {
+            $total = 0;
+            $rows = [];
+        }
+
+        echo View::render('public/powerbi', [
+            'title' => 'PowerBI - OPs',
+            'rows' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per' => $per,
+        ]);
+    }
+
+    public function apiPowerbiOps(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $page = (int)($_GET['page'] ?? 1);
+        $per = (int)($_GET['per'] ?? 500);
+        if ($page < 1) $page = 1;
+        if ($per < 1) $per = 1;
+        if ($per > 1000) $per = 1000;
+        $offset = ($page - 1) * $per;
+
+        try {
+            $opModel = new Op();
+            $total = $opModel->countAll();
+            $rows = $opModel->listPaged($offset, $per);
+            echo json_encode(['ok' => true, 'page' => $page, 'per' => $per, 'total' => $total, 'rows' => $rows], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            echo json_encode(['ok' => false, 'error' => 'db_error'], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
     public function etiqueta(string $id): void
     {
         $local = (new Local())->findWithMp((int)$id);
