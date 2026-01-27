@@ -68,11 +68,15 @@ final class LocaisController extends BaseController
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
         $u = (new User())->findById((int)($_SESSION['user_id'] ?? 0));
+        $keepLocal = (int)($_GET['keep_local'] ?? 0) === 1;
+        $prefLocal = $keepLocal ? strtoupper(trim((string)($_GET['nome_local'] ?? ''))) : '';
         echo View::render('admin/locais/form', [
             'title' => 'Novo local',
             'responsavel' => $u,
             'data_auto' => date('d/m/Y H:i'),
             'slots' => $this->buildLocaisSlots(),
+            'keep_local' => $keepLocal,
+            'nome_local' => $prefLocal !== '' ? $prefLocal : null,
         ]);
     }
 
@@ -82,6 +86,7 @@ final class LocaisController extends BaseController
         $codigo = strtoupper(trim((string)($_POST['codigo_mp'] ?? '')));
         $nomeLocal = strtoupper(trim((string)($_POST['nome_local'] ?? '')));
         $force = (int)($_POST['force'] ?? 0) === 1;
+        $keepLocal = (int)($_POST['keep_local'] ?? 0) === 1;
 
         if ($codigo === '' || $nomeLocal === '') {
             $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Preencha Código e Local.'];
@@ -118,6 +123,9 @@ final class LocaisController extends BaseController
         }
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Local cadastrado com sucesso. Você pode cadastrar outro.'];
+        if ($keepLocal && $nomeLocal !== '') {
+            Http::redirect('/admin/locais/novo?keep_local=1&nome_local=' . rawurlencode($nomeLocal));
+        }
         Http::redirect('/admin/locais/novo');
     }
 

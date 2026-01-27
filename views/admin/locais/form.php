@@ -6,6 +6,7 @@ $descricao_mp = $descricao_mp ?? ($local['nome_mp'] ?? '');
 $nome_local = $nome_local ?? ($local['nome_local'] ?? '');
 $dup_locais = $dup_locais ?? [];
 $slots = $slots ?? [];
+$keep_local = (bool)($keep_local ?? false);
 $responsavel = $responsavel ?? null;
 $data_auto = $data_auto ?? date('d/m/Y H:i');
 
@@ -54,6 +55,12 @@ $action = $local
           <label class="form-label fw-bold small mb-1">Local</label>
           <input class="form-control form-control-sm upper" name="nome_local" id="nome_local" required maxlength="255" value="<?= htmlspecialchars($nome_local) ?>" placeholder="Ex: 3A">
           <div class="invalid-feedback">Informe o nome do local.</div>
+          <?php if (!$local): ?>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="keep_local" id="keep_local" value="1" <?= $keep_local ? 'checked' : '' ?>>
+              <label class="form-check-label small fw-bold" for="keep_local">Manter LOCAL após cadastrar</label>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -151,6 +158,18 @@ $action = $local
           nomeLocal.value = v;
           nomeLocal.focus();
         });
+      });
+    }
+
+    // Foco sempre no Código ao abrir a tela
+    if (codigo) codigo.focus();
+
+    // Enter no Código pula para Local (não envia formulário)
+    if (codigo && nomeLocal) {
+      codigo.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        nomeLocal.focus();
       });
     }
   })();
