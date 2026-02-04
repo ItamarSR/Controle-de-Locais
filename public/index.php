@@ -1,95 +1,86 @@
 <?php
-// public/index.php (ponto de entrada único)
+
+declare(strict_types=1);
+
+// Guardrails para evitar HTTP 500 "mudo" em hospedagem
+if (PHP_VERSION_ID < 80100) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<h1>Erro</h1><p>Este sistema requer PHP 8.1+. Versão atual: " . htmlspecialchars(PHP_VERSION) . "</p>";
+    exit;
+}
+if (!extension_loaded('pdo_mysql')) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<h1>Erro</h1><p>A extensão <code>pdo_mysql</code> não está habilitada no servidor.</p>";
+    exit;
+}
 
 session_start();
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/autoload.php';
 
-// Detectar e remover um possível base path (suporte a execução em subdiretório)
-$basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
-$requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-if ($basePath !== '' && strpos($requestPath, $basePath) === 0) {
-    $requestPath = substr($requestPath, strlen($basePath));
-}
-$path = trim($requestPath, '/');
+// Isola o Composer: o runtime do sistema NÃO depende de vendor/autoload.php.
+// Isso evita 500 em hospedagens onde o vendor foi enviado incompleto ou com permissões erradas.
+require_once __DIR__ . '/../src/autoload_fallback.php';
 
-$segments = explode('/', $path);
+use Core\Http;
+use Core\Router;
 
-switch ($segments[0]) {
-    case '':
-        require __DIR__ . '/../src/views/public/index.php'; // Dashboard público
-        break;
+set_exception_handler(function (Throwable $e): void {
+    http_response_code(500);
+    echo \Core\View::render('errors/500', ['title' => 'Erro', 'message' => $e->getMessage()]);
+});
 
-    case 'login':
-        (new \AuthController())->login();
-        break;
+$router = new Router();
 
-    case 'reset-senha':
-        (new \AuthController())->resetSenha();
-        break;
+// Rotas (serão implementadas nos próximos commits)
+$router->get('/', [\App\Controllers\PublicController::class, 'index']);
+$router->get('/powerbi', [\App\Controllers\PublicController::class, 'powerbi']);
+$router->get('/etiqueta/{id}', [\App\Controllers\PublicController::class, 'etiqueta']);
+$router->get('/etiquetas', [\App\Controllers\PublicController::class, 'etiquetas']);
+$router->get('/api/locais', [\App\Controllers\PublicController::class, 'apiLocais']);
+$router->get('/api/consulta/{codigo}', [\App\Controllers\PublicController::class, 'apiConsulta']);
+$router->get('/api/dash-producao', [\App\Controllers\PublicController::class, 'apiDashProducao']);
+$router->get('/api/powerbi/ops', [\App\Controllers\PublicController::class, 'apiPowerbiOps']);
 
-    case 'logout':
-        (new \AuthController())->logout();
-        break;
+$router->get('/login', [\App\Controllers\AuthController::class, 'showLogin']);
+$router->post('/login', [\App\Controllers\AuthController::class, 'login']);
+$router->get('/logout', [\App\Controllers\AuthController::class, 'logout']);
+$router->get('/reset-senha', [\App\Controllers\AuthController::class, 'showResetSenha']);
+$router->post('/reset-senha', [\App\Controllers\AuthController::class, 'resetSenha']);
 
-    case 'admin':
-        if (isset($segments[1])) {
-            switch ($segments[1]) {
-                case 'dashboard':
-                    require __DIR__ . '/../src/views/admin/dashboard.php';
-                    break;
+$router->get('/admin', [\App\Controllers\AdminController::class, 'index']);
+$router->get('/admin/dashboard', [\App\Controllers\AdminController::class, 'dashboard']);
 
-                case 'locais':
-                    $controller = new \LocalController();
-                    if (isset($segments[2])) {
-                        if ($segments[2] === 'criar') {
-                            $controller->criar();
-                        } elseif ($segments[2] === 'editar' && isset($segments[3])) {
-                            $controller->editar((int)$segments[3]);
-                        } elseif ($segments[2] === 'excluir' && isset($segments[3])) {
-                            $controller->excluir((int)$segments[3]);
-                        } else {
-                            http_response_code(404);
-                            echo "Página não encontrada";
-                        }
-                    } else {
-                        $controller->index();
-                    }
-                    break;
+// Admin - Locais
+$router->get('/admin/locais', [\App\Controllers\LocaisController::class, 'index']);
+$router->get('/admin/locais/api/codigo/{codigo}', [\App\Controllers\LocaisController::class, 'apiByCodigo']);
+$router->get('/admin/locais/novo', [\App\Controllers\LocaisController::class, 'createForm']);
+$router->post('/admin/locais/novo', [\App\Controllers\LocaisController::class, 'create']);
+$router->get('/admin/locais/{id}/editar', [\App\Controllers\LocaisController::class, 'editForm']);
+$router->post('/admin/locais/{id}/editar', [\App\Controllers\LocaisController::class, 'edit']);
+$router->post('/admin/locais/{id}/excluir', [\App\Controllers\LocaisController::class, 'delete']);
 
-                case 'usuarios':
-                    $controller = new \UsuarioController();
-                    if (isset($segments[2])) {
-                        if ($segments[2] === 'criar') {
-                            $controller->criar();
-                        } elseif ($segments[2] === 'editar' && isset($segments[3])) {
-                            $controller->editar((int)$segments[3]);
-                        } elseif ($segments[2] === 'excluir' && isset($segments[3])) {
-                            $controller->excluir((int)$segments[3]);
-                        } else {
-                            http_response_code(404);
-                            echo "Página não encontrada";
-                        }
-                    } else {
-                        $controller->index();
-                    }
-                    break;
+// Admin - Usuários (EditorPro/Admin)
+$router->get('/admin/usuarios', [\App\Controllers\UsuariosController::class, 'index']);
+$router->get('/admin/usuarios/novo', [\App\Controllers\UsuariosController::class, 'createForm']);
+$router->post('/admin/usuarios/novo', [\App\Controllers\UsuariosController::class, 'create']);
+$router->get('/admin/usuarios/{id}/editar', [\App\Controllers\UsuariosController::class, 'editForm']);
+$router->post('/admin/usuarios/{id}/editar', [\App\Controllers\UsuariosController::class, 'edit']);
+$router->post('/admin/usuarios/{id}/excluir', [\App\Controllers\UsuariosController::class, 'delete']);
 
-                case 'import-excel':
-                    (new \ImportController())->index();
-                    break;
+// Admin - Importação MPs
+$router->get('/admin/importacao', [\App\Controllers\ImportacaoController::class, 'form']);
+$router->post('/admin/importacao', [\App\Controllers\ImportacaoController::class, 'import']);
 
-                default:
-                    http_response_code(404);
-                    echo "Página não encontrada";
-            }
-        } else {
-            header('Location: /admin/dashboard');
-            exit;
-        }
-        break;
+// Admin - Configurações (EditorPro/Admin; tema somente Admin)
+$router->get('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'form']);
+$router->post('/admin/configuracoes', [\App\Controllers\ConfiguracoesController::class, 'save']);
 
-    default:
-        http_response_code(404);
-        echo "Página não encontrada";
-}
+// Conferência - OP
+$router->get('/conferencia', [\App\Controllers\ConferenciaController::class, 'dashboard']);
+$router->get('/conferencia/op', [\App\Controllers\OpController::class, 'form']);
+$router->post('/conferencia/op', [\App\Controllers\OpController::class, 'insert']);
+$router->get('/conferencia/op/consulta', [\App\Controllers\OpController::class, 'consulta']);
+$router->get('/conferencia/api/op/{op}', [\App\Controllers\OpController::class, 'apiStatus']);
+
+$router->dispatch(Http::method(), Http::path());

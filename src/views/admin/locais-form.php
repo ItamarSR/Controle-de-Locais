@@ -38,7 +38,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="/admin/locais" class="btn btn-secondary">Cancelar</a>
+    <a href="<?= htmlspecialchars(url('/admin/locais')) ?>" class="btn btn-secondary">Cancelar</a>
 </form>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

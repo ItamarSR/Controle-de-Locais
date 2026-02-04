@@ -1,4 +1,20 @@
 {
-  "_removed": "Este arquivo foi intencionalmente removido — o projeto foi convertido para rodar sem Composer em tempo de execução. Para restaurar dependências, recupere o composer.json original e execute 'composer install'.",
-  "private": true
+  "name": "controle-de-locais/estoque-system",
+  "description": "Sistema em PHP para gerenciamento de Locais e Inventário de Estoque.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.1",
+    "phpoffice/phpspreadsheet": "^2.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/App/",
+      "Core\\": "src/Core/"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "preferred-install": "dist"
+  }
 }

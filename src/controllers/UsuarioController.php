@@ -1,7 +1,9 @@
 <?php
 // src/controllers/UsuarioController.php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../models/Usuario.php';
 
 class UsuarioController {
@@ -11,8 +13,7 @@ class UsuarioController {
         $this->model = new Usuario();
 
         if (!isset($_SESSION['user_id']) || !$this->model->podeGerenciarUsuarios($_SESSION['user_id'])) {
-            header('Location: /login?erro=acesso_negado');
-            exit;
+            redirect('/login?erro=acesso_negado');
         }
     }
 
@@ -86,15 +87,13 @@ class UsuarioController {
 
     public function excluir(int $id) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/usuarios');
-            exit;
+            redirect('/admin/usuarios');
         }
 
         if ($this->model->excluir($id)) {
-            header('Location: /admin/usuarios?msg=excluido');
+            redirect('/admin/usuarios?msg=excluido');
         } else {
-            header('Location: /admin/usuarios?erro=exclusao_negada');
+            redirect('/admin/usuarios?erro=exclusao_negada');
         }
-        exit;
     }
 }

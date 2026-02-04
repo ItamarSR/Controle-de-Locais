@@ -2,7 +2,7 @@
 
 <h2>Gerenciamento de Usuários</h2>
 
-<a href="/admin/usuarios/criar" class="btn btn-primary">+ Novo Usuário</a>
+<a href="<?= htmlspecialchars(url('/admin/usuarios/criar')) ?>" class="btn btn-primary">+ Novo Usuário</a>
 
 <?php if (isset($_GET['msg']) && $_GET['msg'] === 'excluido'): ?>
     <div class="alert success">Usuário excluído com sucesso!</div>
@@ -35,9 +35,9 @@
             <td><?= $u['primeiro_acesso'] ? 'Sim' : 'Não' ?></td>
             <td><?= $u['status'] ? 'Ativo' : 'Inativo' ?></td>
             <td>
-                <a href="/admin/usuarios/editar/<?= $u['id'] ?>" class="btn btn-small">Editar</a>
+                <a href="<?= htmlspecialchars(url('/admin/usuarios/editar/' . $u['id'])) ?>" class="btn btn-small">Editar</a>
                 <?php if ($u['id'] != 1): ?>
-                <form action="/admin/usuarios/excluir/<?= $u['id'] ?>" method="POST" style="display:inline;">
+                <form action="<?= htmlspecialchars(url('/admin/usuarios/excluir/' . $u['id'])) ?>" method="POST" style="display:inline;">
                     <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Confirma exclusão permanente?')">Excluir</button>
                 </form>
                 <?php endif; ?>

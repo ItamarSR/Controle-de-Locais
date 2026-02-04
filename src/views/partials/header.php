@@ -20,18 +20,18 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="/admin/dashboard">Controle de Estoque</a>
+            <a class="navbar-brand" href="<?= htmlspecialchars(url('/admin/dashboard')) ?>">Controle de Estoque</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/admin/locais">Locais</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(url('/admin/locais')) ?>">Locais</a></li>
                     <?php if (isset($_SESSION['nivel']) && in_array($_SESSION['nivel'], ['editorpro', 'admin'])): ?>
-                        <li class="nav-item"><a class="nav-link" href="/admin/usuarios">Usuários</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(url('/admin/usuarios')) ?>">Usuários</a></li>
                     <?php endif; ?>
-                    <li class="nav-item"><a class="nav-link" href="/admin/import-excel">Importar Excel</a></li>
-                    <li class="nav-item"><a class="nav-link text-danger" href="/logout">Logout</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars(url('/admin/import-excel')) ?>">Importar Excel</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="<?= htmlspecialchars(url('/logout')) ?>">Logout</a></li>
                 </ul>
             </div>
         </div>

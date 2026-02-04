@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+  Options -MultiViews
+  DirectoryIndex index.php
+
+  RewriteEngine On
+
+  # Se o projeto estiver com webroot na raiz
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+  ErrorDocument 404 /index.php
+</IfModule>
+

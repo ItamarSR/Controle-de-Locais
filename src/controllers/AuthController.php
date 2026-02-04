@@ -1,12 +1,27 @@
 <?php
 // src/controllers/AuthController.php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../models/Usuario.php';
 
 class AuthController {
     public function login() {
         $erros = [];
+
+        // Mensagens de erro via redirect (?erro=...)
+        $erroCode = $_GET['erro'] ?? null;
+        if (is_string($erroCode) && $erroCode !== '') {
+            $map = [
+                'nao_autenticado' => 'Faça login para continuar.',
+                'acesso_negado' => 'Acesso negado. Verifique suas permissões.',
+            ];
+            if (isset($map[$erroCode])) {
+                $erros[] = $map[$erroCode];
+            }
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = trim($_POST['email'] ?? '');
             $senha = $_POST['senha'] ?? '';
@@ -18,11 +33,10 @@ class AuthController {
                 $_SESSION['nivel'] = $usuario['nivel_acesso'];
                 if ($usuario['primeiro_acesso'] === 1) {
                     $_SESSION['reset_senha_id'] = $usuario['id']; // Temp for reset
-                    header('Location: /reset-senha');
+                    redirect('/reset-senha');
                 } else {
-                    header('Location: /admin/dashboard');
+                    redirect('/admin/dashboard');
                 }
-                exit;
             } else {
                 $erros[] = "Credenciais inválidas ou usuário inativo.";
             }
@@ -32,8 +46,7 @@ class AuthController {
 
     public function resetSenha() {
         if (!isset($_SESSION['reset_senha_id'])) {
-            header('Location: /login');
-            exit;
+            redirect('/login');
         }
         $erros = [];
         $sucesso = false;
@@ -50,8 +63,7 @@ class AuthController {
                 if ($usuarioModel->atualizar($_SESSION['reset_senha_id'], $dados) && $usuarioModel->atualizarPrimeiroAcesso($_SESSION['reset_senha_id'])) {
                     $sucesso = true;
                     unset($_SESSION['reset_senha_id']);
-                    header('Location: /admin/dashboard');
-                    exit;
+                    redirect('/admin/dashboard');
                 } else {
                     $erros[] = "Erro ao atualizar senha.";
                 }
@@ -61,8 +73,9 @@ class AuthController {
     }
 
     public function logout() {
-        session_destroy();
-        header('Location: /login');
-        exit;
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        redirect('/login');
     }
 }
