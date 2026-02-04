@@ -45,10 +45,13 @@ ok('entrypoint: public uses src/autoload_fallback.php', $publicHasAutoloadFallba
 
 // Test 3: import view accepts CSV and documents fallback
 $importView = file_get_contents(__DIR__ . '/../views/admin/importacao/form.php');
-$hasCsvAccept = strpos($importView, 'accept=".csv') !== false || strpos($importView, "accept='.csv") !== false;
-ok('view: import-excel accepts .csv', $hasCsvAccept);
-$hasCsvFallbackNote = stripos($importView, 'fallback') !== false || stripos($importView, 'CSV') !== false;
-ok('view: import-excel documents CSV fallback', $hasCsvFallbackNote);
+$hasAcceptCsv = stripos($importView, 'accept=".csv') !== false || stripos($importView, "accept='.csv") !== false;
+$hasAcceptXls = stripos($importView, '.xls') !== false;
+$hasAcceptXlsx = stripos($importView, '.xlsx') !== false;
+ok('view: import-excel accepts .csv', $hasAcceptCsv);
+ok('view: import-excel accepts .xls/.xlsx', $hasAcceptXls && $hasAcceptXlsx);
+$hasCsvNote = stripos($importView, 'CSV') !== false;
+ok('view: import-excel documents CSV', $hasCsvNote);
 
 // Test 4: ImportacaoController contains CSV parser (fgetcsv)
 $importController = file_get_contents(__DIR__ . '/../src/App/Controllers/ImportacaoController.php');

@@ -14,11 +14,12 @@ $title = 'Importar MPs';
   <div class="card-body p-4">
     <form method="post" action="<?= htmlspecialchars(\Core\Http::url('/admin/importacao')) ?>" enctype="multipart/form-data" class="needs-validation" novalidate>
       <div class="mb-3">
-        <label class="form-label">Arquivo (.csv)</label>
-        <input class="form-control" type="file" name="arquivo" required accept=".csv">
+        <label class="form-label">Arquivo (.csv, .xls, .xlsx)</label>
+        <input class="form-control" type="file" name="arquivo" required accept=".csv,.xls,.xlsx">
         <div class="invalid-feedback">Selecione um arquivo.</div>
         <div class="form-text">
-          Importa colunas A (código) e B (nome) a partir da linha 7. Delimitador aceito: “;” ou “,”.
+          Importa colunas A (código) e B (nome) a partir da linha 7.
+          CSV: delimitador “;” ou “,”. XLS/XLSX: requer vendor/PhpSpreadsheet no servidor.
         </div>
       </div>
       <button class="btn btn-primary" type="submit">Importar</button>

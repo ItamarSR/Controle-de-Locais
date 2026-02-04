@@ -10,6 +10,15 @@ use Core\View;
 
 final class ImportacaoController extends BaseController
 {
+    private function ensureVendorAutoload(): void
+    {
+        // Runtime não depende do Composer, mas para XLS/XLSX podemos carregar se existir.
+        $vendor = dirname(__DIR__, 3) . '/vendor/autoload.php';
+        if (file_exists($vendor)) {
+            require_once $vendor;
+        }
+    }
+
     public function form(): void
     {
         $this->requireRole(['editor', 'editorpro', 'admin']);
@@ -67,10 +76,36 @@ final class ImportacaoController extends BaseController
             }
             fclose($h);
         } elseif (in_array($ext, ['xlsx', 'xls'], true)) {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Importação por Excel desativada. Envie um arquivo CSV (colunas A/B, a partir da linha 7).'];
-            Http::redirect('/admin/importacao');
+            $this->ensureVendorAutoload();
+            if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Importação XLS/XLSX indisponível neste servidor. Envie um arquivo CSV, ou instale o vendor (composer install).'];
+                Http::redirect('/admin/importacao');
+            }
+
+            try {
+                $reader = $ext === 'xls'
+                    ? new \PhpOffice\PhpSpreadsheet\Reader\Xls()
+                    : new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                $reader->setReadDataOnly(true);
+                $spreadsheet = $reader->load($tmp);
+                $sheet = $spreadsheet->getActiveSheet();
+
+                $rowNum = 0;
+                foreach ($sheet->getRowIterator() as $row) {
+                    $rowNum = $row->getRowIndex();
+                    if ($rowNum < 7) continue; // começa na linha 7
+
+                    $codigo = trim((string)$sheet->getCell('A' . $rowNum)->getValue());
+                    $nomeMp = trim((string)$sheet->getCell('B' . $rowNum)->getValue());
+                    if ($codigo === '' && $nomeMp === '') continue;
+                    if ($mpModel->upsert($codigo, $nomeMp)) $importados++; else $erros++;
+                }
+            } catch (\Throwable $e) {
+                $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Falha ao ler o Excel. Tente salvar como CSV e importar novamente.'];
+                Http::redirect('/admin/importacao');
+            }
         } else {
-            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Formato inválido. Envie apenas CSV.' ];
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Formato inválido. Envie CSV, XLS ou XLSX.' ];
             Http::redirect('/admin/importacao');
         }
 
