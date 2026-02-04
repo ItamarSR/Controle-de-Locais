@@ -55,6 +55,10 @@ try {
             <label class="form-label fw-bold">CÓDIGO</label>
             <input class="form-control" id="public-codigo" placeholder="EX: 12345" maxlength="50" autocomplete="off" style="text-transform:uppercase;font-weight:800;">
           </div>
+          <div class="col-12 col-md-4 col-lg-3">
+            <label class="form-label fw-bold">LOCAL</label>
+            <input class="form-control" id="public-local" placeholder="EX: 3A" maxlength="50" autocomplete="off" style="text-transform:uppercase;font-weight:800;">
+          </div>
           <div class="col-12">
             <div id="public-status" class="text-secondary small fw-bold"></div>
           </div>
@@ -64,6 +68,7 @@ try {
           <table class="table align-middle mb-0">
             <thead class="table-light">
               <tr>
+                <th class="fw-bold">CÓDIGO</th>
                 <th class="fw-bold">LOCAL</th>
                 <th class="fw-bold">DESCRIÇÃO</th>
                 <th class="fw-bold">DATA</th>
@@ -73,7 +78,7 @@ try {
             </thead>
             <tbody id="public-result">
               <tr>
-                <td colspan="5" class="text-secondary fw-bold">DIGITE UM CÓDIGO PARA CONSULTAR.</td>
+                <td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td>
               </tr>
             </tbody>
           </table>
@@ -85,10 +90,11 @@ try {
 
 <script>
   (function () {
-    const input = document.getElementById('public-codigo');
+    const inputCodigo = document.getElementById('public-codigo');
+    const inputLocal = document.getElementById('public-local');
     const tbody = document.getElementById('public-result');
     const status = document.getElementById('public-status');
-    if (!input || !tbody) return;
+    if (!inputCodigo || !inputLocal || !tbody || !status) return;
 
     let t = null;
     function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -102,33 +108,38 @@ try {
     }
 
     async function run() {
-      const codigo = (input.value || '').trim();
-      status.textContent = '';
-
-      if (!codigo) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">DIGITE UM CÓDIGO PARA CONSULTAR.</td></tr>';
-        return;
-      }
-
-      status.textContent = 'Consultando...';
-      tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
+      const codigo = (inputCodigo.value || '').trim();
+      const local = (inputLocal.value || '').trim();
+      status.textContent = 'Carregando...';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
 
       try {
-        const res = await fetch('<?= htmlspecialchars(\Core\Http::url('/api/consulta/')) ?>' + encodeURIComponent(codigo), { headers: { 'Accept': 'application/json' } });
+        const qs = new URLSearchParams();
+        if (codigo) qs.set('codigo', codigo);
+        if (local) qs.set('local', local);
+        // limite alto para "exibir todos" (com proteção no servidor)
+        qs.set('limit', '5000');
+
+        const res = await fetch('<?= htmlspecialchars(\Core\Http::url('/api/locais')) ?>' + '?' + qs.toString(), { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (!data || !data.ok) throw new Error('Falha');
 
         const itens = Array.isArray(data.itens) ? data.itens : [];
 
         if (itens.length === 0) {
-          status.textContent = 'Nenhum local encontrado para este código.';
-          tbody.innerHTML = '<tr><td colspan="5" class="text-secondary fw-bold">NENHUM LOCAL ENCONTRADO.</td></tr>';
+          status.textContent = 'Nenhum item encontrado.';
+          tbody.innerHTML = '<tr><td colspan="6" class="text-secondary fw-bold">NENHUM ITEM ENCONTRADO.</td></tr>';
           return;
         }
 
-        status.textContent = `${itens.length} local(is) encontrado(s).`;
+        const hasFilter = !!codigo || !!local;
+        status.textContent = hasFilter
+          ? `${itens.length} item(ns) encontrado(s) para o filtro.`
+          : `${itens.length} item(ns) cadastrados (exibindo lista).`;
+
         tbody.innerHTML = itens.map(i => `
           <tr>
+            <td class="fw-bold">${esc(i.codigo)}</td>
             <td class="fw-bold">${esc(i.local)}</td>
             <td class="fw-bold">${esc(i.descricao)}</td>
             <td class="fw-bold">${esc(fmtDate(i.data))}</td>
@@ -140,14 +151,20 @@ try {
         `).join('');
       } catch (e) {
         status.textContent = 'Erro ao consultar. Tente novamente.';
-        tbody.innerHTML = '<tr><td colspan="5" class="text-danger">Erro ao consultar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-danger">Erro ao consultar.</td></tr>';
       }
     }
 
-    input.addEventListener('input', () => {
+    function queue() {
       clearTimeout(t);
       t = setTimeout(run, 250);
-    });
+    }
+
+    inputCodigo.addEventListener('input', queue);
+    inputLocal.addEventListener('input', queue);
+
+    // Carrega a lista completa ao abrir a página
+    run();
   })();
 </script>
 

@@ -36,6 +36,7 @@ $router = new Router();
 $router->get('/', [\App\Controllers\PublicController::class, 'index']);
 $router->get('/powerbi', [\App\Controllers\PublicController::class, 'powerbi']);
 $router->get('/etiqueta/{id}', [\App\Controllers\PublicController::class, 'etiqueta']);
+$router->get('/api/locais', [\App\Controllers\PublicController::class, 'apiLocais']);
 $router->get('/api/consulta/{codigo}', [\App\Controllers\PublicController::class, 'apiConsulta']);
 $router->get('/api/dash-producao', [\App\Controllers\PublicController::class, 'apiDashProducao']);
 $router->get('/api/powerbi/ops', [\App\Controllers\PublicController::class, 'apiPowerbiOps']);

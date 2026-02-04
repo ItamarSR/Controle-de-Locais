@@ -17,6 +17,76 @@ final class Local
         $this->pdo = Db::pdo();
     }
 
+    /**
+     * Lista pública com filtros opcionais (código e/ou local).
+     * Importante: usa LIMIT para evitar respostas gigantes em bases grandes.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function listPublicFiltered(?string $codigo = null, ?string $local = null, int $limit = 2000): array
+    {
+        $codigo = $codigo !== null ? trim($codigo) : null;
+        $local = $local !== null ? trim($local) : null;
+        if ($codigo === '') $codigo = null;
+        if ($local === '') $local = null;
+
+        if ($limit < 1) $limit = 1;
+        if ($limit > 5000) $limit = 5000;
+
+        $where = [];
+        $binds = [];
+        if ($codigo !== null) {
+            $where[] = 'mp.codigo_mp LIKE :codigo';
+            $binds[':codigo'] = '%' . $codigo . '%';
+        }
+        if ($local !== null) {
+            $where[] = 'l.nome_local LIKE :local';
+            $binds[':local'] = '%' . $local . '%';
+        }
+        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        try {
+            $sql = "
+                SELECT l.id,
+                       l.nome_local,
+                       l.data_cadastro,
+                       mp.codigo_mp,
+                       mp.nome_mp,
+                       u.nome AS responsavel_nome
+                FROM locais l
+                JOIN materias_primas mp ON mp.id = l.mp_id
+                LEFT JOIN usuarios u ON u.id = l.responsavel_usuario_id
+                $whereSql
+                ORDER BY l.nome_local ASC, l.data_cadastro DESC, l.id DESC
+                LIMIT :lim
+            ";
+            $st = $this->pdo->prepare($sql);
+            foreach ($binds as $k => $v) $st->bindValue($k, $v, PDO::PARAM_STR);
+            $st->bindValue(':lim', $limit, PDO::PARAM_INT);
+            $st->execute();
+            return $st->fetchAll();
+        } catch (PDOException $e) {
+            // Compatibilidade: base antiga sem coluna responsavel_usuario_id
+            $sql = "
+                SELECT l.id,
+                       l.nome_local,
+                       l.data_cadastro,
+                       mp.codigo_mp,
+                       mp.nome_mp
+                FROM locais l
+                JOIN materias_primas mp ON mp.id = l.mp_id
+                $whereSql
+                ORDER BY l.nome_local ASC, l.data_cadastro DESC, l.id DESC
+                LIMIT :lim
+            ";
+            $st = $this->pdo->prepare($sql);
+            foreach ($binds as $k => $v) $st->bindValue($k, $v, PDO::PARAM_STR);
+            $st->bindValue(':lim', $limit, PDO::PARAM_INT);
+            $st->execute();
+            return $st->fetchAll();
+        }
+    }
+
     public function listAdmin(?string $q = null): array
     {
         $q = $q !== null ? trim($q) : null;

@@ -17,6 +17,43 @@ final class PublicController
         echo View::render('public/home', ['title' => 'Consulta pública']);
     }
 
+    public function apiLocais(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $codigo = isset($_GET['codigo']) ? (string)$_GET['codigo'] : '';
+        $local = isset($_GET['local']) ? (string)$_GET['local'] : '';
+        $limit = (int)($_GET['limit'] ?? 2000);
+        if ($limit < 1) $limit = 1;
+        if ($limit > 5000) $limit = 5000;
+
+        try {
+            $rows = (new Local())->listPublicFiltered($codigo, $local, $limit);
+            $itens = array_map(function (array $r): array {
+                return [
+                    'id' => (int)$r['id'],
+                    'codigo' => (string)($r['codigo_mp'] ?? ''),
+                    'local' => (string)($r['nome_local'] ?? ''),
+                    'descricao' => (string)($r['nome_mp'] ?? ''),
+                    'data' => (string)($r['data_cadastro'] ?? ''),
+                    'responsavel' => (string)($r['responsavel_nome'] ?? ''),
+                    'etiqueta_url' => Http::url('/etiqueta/' . (int)$r['id']),
+                ];
+            }, $rows);
+
+            echo json_encode([
+                'ok' => true,
+                'codigo' => trim($codigo),
+                'local' => trim($local),
+                'limit' => $limit,
+                'count' => count($itens),
+                'itens' => $itens,
+            ], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            echo json_encode(['ok' => false, 'error' => 'db_error'], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
     public function powerbi(): void
     {
         $page = (int)($_GET['page'] ?? 1);
