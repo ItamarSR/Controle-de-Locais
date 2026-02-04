@@ -64,7 +64,6 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
           <label class="form-label fw-bold small mb-1 d-flex align-items-center justify-content-between gap-2">
             <span>SAÍDA</span>
             <span class="d-flex align-items-center gap-2">
-              <button class="btn btn-outline-secondary btn-sm fw-bold py-0 px-2" type="button" id="btn-emb">EMBALAGEM</button>
               <span class="form-check form-switch m-0">
                 <input class="form-check-input" type="checkbox" id="saida_pmode">
                 <label class="form-check-label small fw-bold" for="saida_pmode">P1–P12</label>
@@ -112,6 +111,9 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         <div class="col-12">
           <label class="form-label fw-bold small mb-1">OBS</label>
           <textarea class="form-control form-control-sm upper fw-bold" name="obs" id="obs" rows="2"><?= htmlspecialchars((string)($prefill['obs'] ?? '')) ?></textarea>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-outline-secondary btn-sm fw-bold" type="button" id="btn-emb">EXIBIR EMBALAGEM</button>
         </div>
 
         <div class="col-12 d-none" id="emb-wrap">
@@ -251,7 +253,10 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
       }
 
       if (btnEmb) {
-        btnEmb.textContent = 'EMBALAGEM';
+        btnEmb.disabled = active;
+        btnEmb.textContent = active
+          ? 'EMBALAGEM (ATIVA)'
+          : (embManual ? 'OCULTAR EMBALAGEM' : 'EXIBIR EMBALAGEM');
       }
     }
 
@@ -442,10 +447,11 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     // Botão para exibir os campos de cálculo de embalagem
     if (btnEmb) {
       btnEmb.addEventListener('click', () => {
-        embManual = true;
+        if (isEmbActive()) return;
+        embManual = !embManual;
         updateEmbVisibility();
         // scroll suave até a seção (se estiver visível)
-        if (embWrap && !embWrap.classList.contains('d-none')) {
+        if (embManual && embWrap && !embWrap.classList.contains('d-none')) {
           embWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
