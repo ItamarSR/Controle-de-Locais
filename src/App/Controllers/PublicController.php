@@ -114,6 +114,29 @@ final class PublicController
         require dirname(__DIR__, 3) . '/views/public/etiqueta.php';
     }
 
+    public function etiquetas(): void
+    {
+        $raw = (string)($_GET['ids'] ?? '');
+        $parts = array_filter(array_map('trim', explode(',', $raw)), fn($s) => $s !== '');
+        $ids = array_map('intval', $parts);
+        $ids = array_values(array_filter($ids, fn($v) => $v > 0));
+        if (!$ids) {
+            http_response_code(404);
+            echo View::render('errors/404', ['path' => '/etiquetas']);
+            return;
+        }
+
+        $locals = (new Local())->findManyWithMp($ids);
+        if (!$locals) {
+            http_response_code(404);
+            echo View::render('errors/404', ['path' => '/etiquetas']);
+            return;
+        }
+
+        // página simples de impressão (sem layout)
+        require dirname(__DIR__, 3) . '/views/public/etiquetas.php';
+    }
+
     public function apiConsulta(string $codigo): void
     {
         header('Content-Type: application/json; charset=utf-8');

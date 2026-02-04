@@ -65,9 +65,22 @@ try {
         </div>
 
         <div class="table-responsive">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button class="btn btn-primary btn-sm fw-bold" type="button" id="public-print-selected" disabled>IMPRIMIR SELECIONADOS (0)</button>
+              <button class="btn btn-outline-secondary btn-sm fw-bold" type="button" id="public-clear-selected" disabled>LIMPAR SELEÇÃO</button>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="checkbox" id="public-select-all">
+                <label class="form-check-label fw-bold small" for="public-select-all">Selecionar todos (lista)</label>
+              </div>
+            </div>
+          </div>
           <table class="table align-middle mb-0">
             <thead class="table-light">
               <tr>
+                <th style="width:44px;"></th>
                 <th class="fw-bold">CÓDIGO</th>
                 <th class="fw-bold">LOCAL</th>
                 <th class="fw-bold">DESCRIÇÃO</th>
@@ -78,11 +91,31 @@ try {
             </thead>
             <tbody id="public-result">
               <tr>
-                <td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td>
+                <td colspan="7" class="text-secondary fw-bold">CARREGANDO...</td>
               </tr>
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Impressão (mesma tela) -->
+<div class="modal fade" id="printModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <div class="fw-bold">Imprimir etiquetas</div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="printFrame" title="Pré-visualização" style="width:100%;height:78vh;border:0;background:#fff;"></iframe>
+      </div>
+      <div class="modal-footer">
+        <div class="me-auto small fw-bold text-secondary" id="printModalInfo"></div>
+        <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-primary fw-bold" id="printNow">Imprimir</button>
       </div>
     </div>
   </div>
@@ -96,7 +129,18 @@ try {
     const status = document.getElementById('public-status');
     if (!inputCodigo || !inputLocal || !tbody || !status) return;
 
+    const btnPrintSelected = document.getElementById('public-print-selected');
+    const btnClearSelected = document.getElementById('public-clear-selected');
+    const chkAll = document.getElementById('public-select-all');
+    const printModalEl = document.getElementById('printModal');
+    const printFrame = document.getElementById('printFrame');
+    const printNow = document.getElementById('printNow');
+    const printInfo = document.getElementById('printModalInfo');
+
     let t = null;
+    let currentItems = [];
+    const selected = new Set();
+
     function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
     function fmtDate(s){
       if (!s) return '';
@@ -107,11 +151,44 @@ try {
       return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
+    function updateSelectionUi() {
+      const n = selected.size;
+      if (btnPrintSelected) {
+        btnPrintSelected.disabled = n < 1;
+        btnPrintSelected.textContent = `IMPRIMIR SELECIONADOS (${n})`;
+      }
+      if (btnClearSelected) btnClearSelected.disabled = n < 1;
+
+      // Atualiza "selecionar todos" com base na lista atual
+      if (chkAll) {
+        const visibleIds = currentItems.map(i => String(i.id));
+        const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selected.has(id));
+        const someVisibleSelected = visibleIds.some(id => selected.has(id));
+        chkAll.indeterminate = !allVisibleSelected && someVisibleSelected;
+        chkAll.checked = allVisibleSelected;
+      }
+    }
+
+    function openPrint(ids) {
+      const list = Array.isArray(ids) ? ids.map(v => String(v)).filter(v => /^\d+$/.test(v) && Number(v) > 0) : [];
+      if (list.length < 1) return;
+      const url = '<?= htmlspecialchars(\Core\Http::url('/etiquetas')) ?>' + '?ids=' + encodeURIComponent(list.join(',')) + '&t=' + Date.now();
+      if (printFrame) printFrame.src = url;
+      if (printInfo) printInfo.textContent = `${list.length} etiqueta(s) selecionada(s).`;
+      if (printModalEl && window.bootstrap && typeof window.bootstrap.Modal === 'function') {
+        const m = window.bootstrap.Modal.getOrCreateInstance(printModalEl);
+        m.show();
+      } else if (printModalEl) {
+        // fallback: abre na mesma aba
+        window.location.href = url;
+      }
+    }
+
     async function run() {
       const codigo = (inputCodigo.value || '').trim();
       const local = (inputLocal.value || '').trim();
       status.textContent = 'Carregando...';
-      tbody.innerHTML = '<tr><td colspan="6" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-secondary fw-bold">CARREGANDO...</td></tr>';
 
       try {
         const qs = new URLSearchParams();
@@ -125,10 +202,12 @@ try {
         if (!data || !data.ok) throw new Error('Falha');
 
         const itens = Array.isArray(data.itens) ? data.itens : [];
+        currentItems = itens;
 
         if (itens.length === 0) {
           status.textContent = 'Nenhum item encontrado.';
-          tbody.innerHTML = '<tr><td colspan="6" class="text-secondary fw-bold">NENHUM ITEM ENCONTRADO.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="text-secondary fw-bold">NENHUM ITEM ENCONTRADO.</td></tr>';
+          updateSelectionUi();
           return;
         }
 
@@ -139,19 +218,24 @@ try {
 
         tbody.innerHTML = itens.map(i => `
           <tr>
+            <td>
+              <input class="form-check-input public-check" type="checkbox" data-id="${esc(i.id)}" ${selected.has(String(i.id)) ? 'checked' : ''}>
+            </td>
             <td class="fw-bold">${esc(i.codigo)}</td>
             <td class="fw-bold">${esc(i.local)}</td>
             <td class="fw-bold">${esc(i.descricao)}</td>
             <td class="fw-bold">${esc(fmtDate(i.data))}</td>
             <td class="fw-bold">${esc(i.responsavel || '')}</td>
             <td class="text-end">
-              <a class="btn btn-sm btn-primary" target="_blank" href="${esc(i.etiqueta_url)}">Imprimir etiqueta</a>
+              <button class="btn btn-sm btn-primary public-print-one" type="button" data-id="${esc(i.id)}">Imprimir</button>
             </td>
           </tr>
         `).join('');
+
+        updateSelectionUi();
       } catch (e) {
         status.textContent = 'Erro ao consultar. Tente novamente.';
-        tbody.innerHTML = '<tr><td colspan="6" class="text-danger">Erro ao consultar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-danger">Erro ao consultar.</td></tr>';
       }
     }
 
@@ -162,6 +246,72 @@ try {
 
     inputCodigo.addEventListener('input', queue);
     inputLocal.addEventListener('input', queue);
+
+    // seleção via tabela (delegação)
+    tbody.addEventListener('change', (ev) => {
+      const el = ev.target;
+      if (!(el instanceof HTMLElement)) return;
+      if (!el.classList.contains('public-check')) return;
+      const id = String(el.getAttribute('data-id') || '');
+      if (!/^\d+$/.test(id)) return;
+      if (el.checked) selected.add(id); else selected.delete(id);
+      updateSelectionUi();
+    });
+
+    tbody.addEventListener('click', (ev) => {
+      const el = ev.target;
+      if (!(el instanceof HTMLElement)) return;
+      if (!el.classList.contains('public-print-one')) return;
+      const id = String(el.getAttribute('data-id') || '');
+      if (!/^\d+$/.test(id)) return;
+      openPrint([id]);
+    });
+
+    if (chkAll) {
+      chkAll.addEventListener('change', () => {
+        const check = !!chkAll.checked;
+        for (const i of currentItems) {
+          const id = String(i.id);
+          if (!/^\d+$/.test(id)) continue;
+          if (check) selected.add(id); else selected.delete(id);
+        }
+        // Atualiza checkboxes visíveis sem precisar recarregar
+        tbody.querySelectorAll('input.public-check[data-id]').forEach((n) => {
+          if (!(n instanceof HTMLInputElement)) return;
+          const id = String(n.getAttribute('data-id') || '');
+          n.checked = selected.has(id);
+        });
+        updateSelectionUi();
+      });
+    }
+
+    if (btnClearSelected) {
+      btnClearSelected.addEventListener('click', () => {
+        selected.clear();
+        tbody.querySelectorAll('input.public-check[data-id]').forEach((n) => {
+          if (n instanceof HTMLInputElement) n.checked = false;
+        });
+        updateSelectionUi();
+      });
+    }
+
+    if (btnPrintSelected) {
+      btnPrintSelected.addEventListener('click', () => {
+        openPrint(Array.from(selected));
+      });
+    }
+
+    if (printNow && printFrame) {
+      printNow.addEventListener('click', () => {
+        try {
+          if (printFrame.contentWindow) printFrame.contentWindow.focus();
+          if (printFrame.contentWindow) printFrame.contentWindow.print();
+        } catch (e) {
+          // fallback: abre a página do iframe na mesma aba
+          if (printFrame.src) window.location.href = printFrame.src;
+        }
+      });
+    }
 
     // Carrega a lista completa ao abrir a página
     run();

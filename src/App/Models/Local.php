@@ -87,6 +87,33 @@ final class Local
         }
     }
 
+    /**
+     * Busca vários locais pelo ID, já com MP.
+     *
+     * @param array<int, int|string> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findManyWithMp(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        $ids = array_values(array_filter($ids, fn($v) => $v > 0));
+        if (!$ids) return [];
+
+        // Evita query gigante / abuso
+        if (count($ids) > 200) $ids = array_slice($ids, 0, 200);
+
+        $in = implode(',', array_fill(0, count($ids), '?'));
+        $st = $this->pdo->prepare("
+            SELECT l.id, l.nome_local, mp.codigo_mp, mp.nome_mp
+            FROM locais l
+            JOIN materias_primas mp ON mp.id = l.mp_id
+            WHERE l.id IN ($in)
+            ORDER BY l.nome_local ASC, l.id ASC
+        ");
+        $st->execute($ids);
+        return $st->fetchAll();
+    }
+
     public function listAdmin(?string $q = null): array
     {
         $q = $q !== null ? trim($q) : null;
