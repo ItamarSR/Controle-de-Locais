@@ -63,9 +63,12 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
         <div class="col-6 col-md-4 col-lg-3">
           <label class="form-label fw-bold small mb-1 d-flex align-items-center justify-content-between gap-2">
             <span>SAÍDA</span>
-            <span class="form-check form-switch m-0">
-              <input class="form-check-input" type="checkbox" id="saida_pmode">
-              <label class="form-check-label small fw-bold" for="saida_pmode">P1–P12</label>
+            <span class="d-flex align-items-center gap-2">
+              <button class="btn btn-outline-secondary btn-sm fw-bold py-0 px-2" type="button" id="btn-emb">EMBALAGEM</button>
+              <span class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="saida_pmode">
+                <label class="form-check-label small fw-bold" for="saida_pmode">P1–P12</label>
+              </span>
             </span>
           </label>
           <input type="hidden" name="saida" id="saida_hidden" value="<?= htmlspecialchars((string)($prefill['saida'] ?? '')) ?>">
@@ -118,7 +121,7 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
                 <label class="form-label fw-bold small mb-1">QTDE EMB</label>
                 <input class="form-control form-control-sm fw-bold" name="qtde_emb" id="qtde_emb" inputmode="numeric" autocomplete="off" value="<?= htmlspecialchars($prefill_qtde_emb) ?>" placeholder="EX: 10">
                 <div class="invalid-feedback">Qtde Emb é obrigatória quando SAÍDA &gt; 100,000.</div>
-                <div class="form-text">Cálculo: QTDE × 0,060kg</div>
+                <div class="form-text">Cálculo: QTDE × 0,060kg (só desconta quando SAÍDA BRUTA &gt; 100,000)</div>
               </div>
               <div class="col-12 col-md-6">
                 <label class="form-label fw-bold small mb-1">TOTAL EMB (KG)</label>
@@ -161,13 +164,20 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     const desp = document.getElementById('desperdicio');
     const obs = document.getElementById('obs');
     const embWrap = document.getElementById('emb-wrap');
+    const btnEmb = document.getElementById('btn-emb');
     const pMode = document.getElementById('saida_pmode');
     const pWrap = document.getElementById('p-wrap');
     const pInputs = Array.from(document.querySelectorAll('[data-p]'));
     let t = null;
+    let embManual = false;
 
     const EMB_KG = 0.060;
     const EMB_SHOW_ABOVE = 100.000;
+
+    function isEmbActive(){
+      const g = getSaidaGross();
+      return (g !== null && g > EMB_SHOW_ABOVE);
+    }
 
     function setWarn(html, type){
       if (warnTop) {
@@ -229,20 +239,25 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     function updateEmbVisibility(){
       if (!saida || !qtdeEmb || !embWrap) return;
       // visibilidade baseada no BRUTO (antes de descontar emb)
-      const g = getSaidaGross();
-      const show = (g !== null && g > EMB_SHOW_ABOVE);
+      const active = isEmbActive();
+      const show = active || embManual;
       embWrap.classList.toggle('d-none', !show);
-      qtdeEmb.required = !!show;
-      if (!show) {
-        qtdeEmb.value = '';
-        if (totalEmb) totalEmb.value = '';
-        // volta a exibir o bruto (sem desconto)
+      qtdeEmb.required = !!active;
+
+      if (!active) {
+        // quando não está ativo, SAÍDA não deve ser líquida
+        saida.dataset.netApplied = '0';
         if (saidaHidden) saida.value = String(saidaHidden.value || '');
+      }
+
+      if (btnEmb) {
+        btnEmb.textContent = 'EMBALAGEM';
       }
     }
 
     function getTotalEmbKg(){
       const q = qtdeEmb && qtdeEmb.value ? Number(String(qtdeEmb.value).replace(/\D/g,'')) : 0;
+      if (!isEmbActive()) return 0;
       return (Number.isFinite(q) ? (q * EMB_KG) : 0);
     }
 
@@ -422,6 +437,18 @@ $prefill_qtde_emb = (string)($prefill['qtde_emb'] ?? '');
     if (qtdeEmb) {
       qtdeEmb.addEventListener('input', () => { calcEmbTotal(); applySaidaLiquidaFromGross(); calcDesperdicio(); });
       qtdeEmb.addEventListener('blur', () => { calcEmbTotal(); applySaidaLiquidaFromGross(); calcDesperdicio(); });
+    }
+
+    // Botão para exibir os campos de cálculo de embalagem
+    if (btnEmb) {
+      btnEmb.addEventListener('click', () => {
+        embManual = true;
+        updateEmbVisibility();
+        // scroll suave até a seção (se estiver visível)
+        if (embWrap && !embWrap.classList.contains('d-none')) {
+          embWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     }
 
     // Modo pesagens P1..P12
